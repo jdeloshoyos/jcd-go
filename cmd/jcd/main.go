@@ -8,6 +8,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 
 	"jcd-go/internal/cli"
+	"jcd-go/internal/config"
 	"jcd-go/internal/tui"
 	"jcd-go/internal/version"
 )
@@ -45,13 +46,40 @@ func run(args []string) int {
 		return cli.ExitUsage
 	}
 
+	cfgPath := opts.ConfigPath
+	if cfgPath == "" {
+		cfgPath = os.Getenv("JCD_CONFIG")
+	}
+	if cfgPath == "" {
+		cfgPath = config.DefaultPath()
+	}
+
+	cfg, err := config.Load(cfgPath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "jcd: %v\n", err)
+		return cli.ExitUsage
+	}
+	sortMode, err := cfg.SortMode()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "jcd: %v\n", err)
+		return cli.ExitUsage
+	}
+	if _, ok := tui.ThemeByName(cfg.Theme); !ok {
+		fmt.Fprintf(os.Stderr, "jcd: unknown theme %q\n", cfg.Theme)
+		return cli.ExitUsage
+	}
+
 	if w, h, err := cli.TerminalSize(); err == nil && (w < tui.MinWidth || h < tui.MinHeight) {
 		fmt.Fprintf(os.Stderr, "jcd: terminal too small (%dx%d); at least %dx%d required\n",
 			w, h, tui.MinWidth, tui.MinHeight)
 		return cli.ExitTooSmall
 	}
 
-	model, err := tui.New(dir)
+	model, err := tui.NewWithOptions(dir, tui.Options{
+		Theme: cfg.Theme,
+		Sort:  sortMode,
+		Mouse: cfg.Mouse,
+	})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "jcd: %v\n", err)
 		return cli.ExitError

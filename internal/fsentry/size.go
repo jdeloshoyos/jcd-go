@@ -1,25 +1,32 @@
 package fsentry
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
-var sizeUnits = []string{"bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"}
+// sizeUnits are standard IEC binary prefixes.
+var sizeUnits = []string{"B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"}
 
-// HumanFileSize converts a byte count into the legacy human-readable form,
-// e.g. "1.5 MB".
+// HumanFileSize converts a byte count into standard IEC units.
 //
-// The boundary behaviour intentionally mirrors the legacy app: the value is
-// divided only while it is strictly greater than 1024. As a result, exactly
-// 1024 bytes renders as "1024 bytes" and 1 MiB renders as "1024.0 KB". This
-// quirk is preserved for parity and can be revisited during release polish.
+// Values below 1 KiB are rendered as whole bytes ("512 B"). Larger values are
+// divided by 1024 and rendered with one decimal place and an IEC unit
+// ("1.5 MiB"). A value that would round up to 1024.0 is promoted to the next
+// unit, so 1 MiB - 1 byte renders as "1.0 MiB" rather than "1024.0 KiB".
 func HumanFileSize(bytes int64) string {
+	if bytes > -1024 && bytes < 1024 {
+		return fmt.Sprintf("%d B", bytes)
+	}
+
 	value := float64(bytes)
-	level := 0
-	for value > 1024 && level < len(sizeUnits)-1 {
+	unit := 0
+	for unit < len(sizeUnits)-1 {
+		if math.Abs(math.Round(value*10)/10) < 1024 {
+			break
+		}
 		value /= 1024
-		level++
+		unit++
 	}
-	if level == 0 {
-		return fmt.Sprintf("%d bytes", bytes)
-	}
-	return fmt.Sprintf("%.1f %s", value, sizeUnits[level])
+	return fmt.Sprintf("%.1f %s", value, sizeUnits[unit])
 }

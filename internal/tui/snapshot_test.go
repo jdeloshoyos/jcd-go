@@ -42,6 +42,7 @@ func snapshotModel() Model {
 		height:   24,
 		search:   newSearchInput(),
 		help:     viewport.New(),
+		theme:    DefaultTheme(),
 		openFile: func(string) error { return nil },
 	}
 }

@@ -1,7 +1,7 @@
 # JCD — Legacy Compatibility
 
 - **Status:** Draft
-- **Version:** 0.1.0
+- **Version:** 0.2.0
 - **Last updated:** 2026-11-10
 
 This document maps the PowerBASIC legacy application (`legacy-app/`) to the Go
@@ -28,7 +28,7 @@ port and records every deliberate behavioural difference.
 | Type-to-search with 1 s reset | **Explicit `/` search mode** (deliberate change). |
 | Tab cycles search matches | Same, wrapping. |
 | Attribute mask `d l r h s a c i e` | `fsentry.Attributes.Mask()` (identical order). |
-| `HumanFileSize` (divide while > 1024) | Same algorithm, preserved boundary quirk. |
+| `HumanFileSize` (divide while > 1024) | Standard IEC units (deliberate change; see §3.6). |
 | Drive screen `C:`–`Z:` | `platform.Drives()` (Windows); `/` elsewhere. |
 | Enter opens file via `ShellExecute` | `platform.OpenFile()` (`cmd /c start`, `open`, `xdg-open`). |
 | `version*OK*path` output | **Single path line on stdout + exit code** (deliberate change). |
@@ -67,12 +67,27 @@ size of zero, so this was effectively "regular files". The port sums regular
 files explicitly, which keeps the same Windows result and gives a meaningful
 value on Unix.
 
+### 3.6 Size units
+Legacy rendered `KB`, `MB`, and so on, with a boundary quirk (1 MiB rendered as
+`1024.0 KB`). The port uses standard IEC units (`B`, `KiB`, `MiB`, `GiB`, …)
+and promotes a unit when the value would round to `1024.0`, so sizes read
+correctly at unit boundaries.
+
+### 3.7 Themes, mouse, and configuration
+The port adds a monochrome theme, optional mouse support (wheel and
+click-to-select), and an optional JSON configuration file. The legacy app had
+none of these. Mouse support is off by default so the terminal's native text
+selection keeps working.
+
 ## 4. Parity checklist
 
 - [x] Six sort modes, directories first
 - [x] Case-insensitive substring search, nth match
 - [x] Nine-character attribute mask in legacy order
-- [x] `HumanFileSize` units and rounding
+- [x] IEC size formatting (deliberate delta)
+- [x] Optional configuration (theme, sort, mouse)
+- [x] Default and monochrome themes
+- [x] Optional mouse wheel and click selection
 - [x] Browsing and navigation keys in the TUI
 - [x] Sort cycling with F2
 - [x] Explicit search mode with Tab cycling

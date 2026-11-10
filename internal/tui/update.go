@@ -34,7 +34,57 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.search, cmd = m.search.Update(msg)
 			return m, cmd
 		}
+
+	case tea.MouseWheelMsg:
+		return m.updateMouseWheel(msg)
+
+	case tea.MouseClickMsg:
+		return m.updateMouseClick(msg)
 	}
+	return m, nil
+}
+
+func (m Model) updateMouseWheel(msg tea.MouseWheelMsg) (tea.Model, tea.Cmd) {
+	if !m.mouse {
+		return m, nil
+	}
+
+	switch m.state {
+	case StateBrowsing, StateDriveSelect:
+		switch msg.Button {
+		case tea.MouseWheelUp:
+			m.move(-3)
+		case tea.MouseWheelDown:
+			m.move(3)
+		}
+	case StateHelp:
+		var cmd tea.Cmd
+		m.help, cmd = m.help.Update(msg)
+		return m, cmd
+	}
+	return m, nil
+}
+
+func (m Model) updateMouseClick(msg tea.MouseClickMsg) (tea.Model, tea.Cmd) {
+	if !m.mouse || msg.Button != tea.MouseLeft {
+		return m, nil
+	}
+	if m.state != StateBrowsing && m.state != StateDriveSelect {
+		return m, nil
+	}
+
+	// The first two rows are the header; entries start on row 2 (zero-based).
+	row := msg.Y - 2
+	if row < 0 || row >= m.visibleRows() {
+		return m, nil
+	}
+	idx := m.offset + row
+	if m.listing == nil || idx >= len(m.listing.Entries) {
+		return m, nil
+	}
+
+	m.setCursor(idx)
+	m.status = ""
 	return m, nil
 }
 

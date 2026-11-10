@@ -542,6 +542,106 @@ func TestBrokenSymlinkShowsStatus(t *testing.T) {
 	}
 }
 
+func TestThemeByName(t *testing.T) {
+	for _, name := range []string{"", "default", "mono", "monochrome", "MONO"} {
+		if _, ok := ThemeByName(name); !ok {
+			t.Errorf("ThemeByName(%q) not found", name)
+		}
+	}
+	if _, ok := ThemeByName("rainbow"); ok {
+		t.Error("ThemeByName(rainbow) unexpectedly found")
+	}
+}
+
+func TestNewWithOptions(t *testing.T) {
+	dir := t.TempDir()
+	mustWrite(t, filepath.Join(dir, "a.txt"), []byte("1"))
+
+	m, err := NewWithOptions(dir, Options{Theme: "mono", Sort: fsentry.SortSizeDesc, Mouse: true})
+	if err != nil {
+		t.Fatalf("NewWithOptions: %v", err)
+	}
+	if m.SortMode() != fsentry.SortSizeDesc {
+		t.Errorf("SortMode() = %v, want %v", m.SortMode(), fsentry.SortSizeDesc)
+	}
+	if !m.mouse {
+		t.Error("mouse = false, want true")
+	}
+	if !m.theme.Selected.GetReverse() {
+		t.Error("mono theme selection does not use reverse video")
+	}
+}
+
+func TestViewEnablesMouse(t *testing.T) {
+	m, _ := newTestModel(t)
+	if got := m.View().MouseMode; got != tea.MouseModeNone {
+		t.Errorf("MouseMode = %v, want none by default", got)
+	}
+
+	m.mouse = true
+	if got := m.View().MouseMode; got != tea.MouseModeCellMotion {
+		t.Errorf("MouseMode = %v, want cell motion", got)
+	}
+}
+
+func TestMouseClickSelectsEntry(t *testing.T) {
+	m, _ := newTestModel(t)
+	m.mouse = true
+	next, _ := m.Update(tea.WindowSizeMsg{Width: 80, Height: 24})
+	m = next.(Model)
+
+	// Row 3 (zero-based) is the second entry (index 1).
+	next, _ = m.Update(tea.MouseClickMsg{X: 0, Y: 3, Button: tea.MouseLeft})
+	m = next.(Model)
+	if m.Cursor() != 1 {
+		t.Errorf("after click: cursor = %d, want 1", m.Cursor())
+	}
+
+	// Clicking the header must not move the cursor.
+	next, _ = m.Update(tea.MouseClickMsg{X: 0, Y: 1, Button: tea.MouseLeft})
+	m = next.(Model)
+	if m.Cursor() != 1 {
+		t.Errorf("after header click: cursor = %d, want 1", m.Cursor())
+	}
+}
+
+func TestMouseWheelMovesCursor(t *testing.T) {
+	m, _ := newTestModel(t)
+	m.mouse = true
+	next, _ := m.Update(tea.WindowSizeMsg{Width: 80, Height: 24})
+	m = next.(Model)
+
+	next, _ = m.Update(tea.MouseWheelMsg{Button: tea.MouseWheelDown})
+	m = next.(Model)
+	if m.Cursor() != 2 {
+		t.Errorf("after wheel down: cursor = %d, want 2", m.Cursor())
+	}
+
+	next, _ = m.Update(tea.MouseWheelMsg{Button: tea.MouseWheelUp})
+	m = next.(Model)
+	if m.Cursor() != 0 {
+		t.Errorf("after wheel up: cursor = %d, want 0", m.Cursor())
+	}
+}
+
+func TestMouseDisabled(t *testing.T) {
+	m, _ := newTestModel(t)
+	next, _ := m.Update(tea.WindowSizeMsg{Width: 80, Height: 24})
+	m = next.(Model)
+
+	next, _ = m.Update(tea.MouseClickMsg{X: 0, Y: 4, Button: tea.MouseLeft})
+	m = next.(Model)
+	if m.Cursor() != 0 {
+		t.Errorf("cursor = %d, want 0 with mouse disabled", m.Cursor())
+	}
+
+	next, _ = m.Update(tea.MouseWheelMsg{Button: tea.MouseWheelDown})
+	m = next.(Model)
+	if m.Cursor() != 0 {
+		t.Errorf("cursor = %d, want 0 with mouse disabled", m.Cursor())
+	}
+}
+
 func TestEnterOnEmptyDirectoryIsNoop(t *testing.T) {
 	m, dir := newTestModel(t)
 

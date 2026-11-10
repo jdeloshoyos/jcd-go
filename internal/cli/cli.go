@@ -35,8 +35,9 @@ const (
 
 // Options is the result of parsing the command line.
 type Options struct {
-	Action Action
-	Dir    string
+	Action     Action
+	Dir        string
+	ConfigPath string
 }
 
 // ErrTooManyArgs is returned when more than one directory is given.
@@ -48,29 +49,46 @@ var ErrTooManyArgs = errors.New("too many arguments")
 // terminates option parsing, so directories whose names begin with "-" can be
 // reached with `jcd -- -dirname`.
 func ParseArgs(args []string) (Options, error) {
-	if len(args) > 0 {
-		switch args[0] {
-		case "--version", "-v":
+	opts := Options{Action: ActionRun}
+	var positional []string
+
+	for i := 0; i < len(args); i++ {
+		arg := args[i]
+		switch {
+		case arg == "--":
+			positional = append(positional, args[i+1:]...)
+			i = len(args)
+
+		case arg == "--version" || arg == "-v":
 			return Options{Action: ActionVersion}, nil
-		case "--help", "-h":
+
+		case arg == "--help" || arg == "-h":
 			return Options{Action: ActionHelp}, nil
+
+		case arg == "--config" || arg == "-c":
+			if i+1 >= len(args) {
+				return Options{}, fmt.Errorf("option %q requires a path", arg)
+			}
+			opts.ConfigPath = args[i+1]
+			i++
+
+		case strings.HasPrefix(arg, "--config="):
+			opts.ConfigPath = strings.TrimPrefix(arg, "--config=")
+
+		case strings.HasPrefix(arg, "-") && arg != "-":
+			return Options{}, fmt.Errorf("unknown option %q", arg)
+
+		default:
+			positional = append(positional, arg)
 		}
 	}
 
-	forcePath := false
-	if len(args) > 0 && args[0] == "--" {
-		args = args[1:]
-		forcePath = true
-	}
-
-	switch len(args) {
+	switch len(positional) {
 	case 0:
-		return Options{Action: ActionRun}, nil
+		return opts, nil
 	case 1:
-		if !forcePath && strings.HasPrefix(args[0], "-") && args[0] != "-" {
-			return Options{}, fmt.Errorf("unknown option %q", args[0])
-		}
-		return Options{Action: ActionRun, Dir: args[0]}, nil
+		opts.Dir = positional[0]
+		return opts, nil
 	default:
 		return Options{}, ErrTooManyArgs
 	}
@@ -82,6 +100,7 @@ func Usage(w io.Writer, version string) {
 
 Usage:
   jcd [directory]
+  jcd --config <path> [directory]
   jcd --version
   jcd --help
 
@@ -91,6 +110,11 @@ cycle sort modes, / to search, and F1 (or ?) for help.
 
 Esc quits and prints the final directory to stdout so a shell wrapper (for
 example scripts/jcd.ps1) can change into it.
+
+Configuration:
+  An optional JSON file selects the theme, initial sort, and mouse support.
+  It is read from --config <path>, JCD_CONFIG, or <UserConfigDir>/jcd/config.json
+  (missing files are ignored).
 `, version)
 }
 

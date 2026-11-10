@@ -1,7 +1,7 @@
 # JCD — Architecture
 
 - **Status:** Draft
-- **Version:** 0.1.0
+- **Version:** 0.2.0
 - **Last updated:** 2026-11-10
 
 ## 1. Technology stack
@@ -24,7 +24,8 @@ parsing, and redraw.
 
 ```
 cmd/jcd/              command entry point: arguments, run loop, output protocol
-internal/cli/         start-directory resolution, terminal size, exit codes
+internal/cli/         start-directory resolution, argument parsing, exit codes
+internal/config/      optional JSON configuration (theme, sort, mouse)
 internal/fsentry/     portable model + pure logic (no TUI, no OS-specific code)
 internal/tui/         Bubble Tea model, update, view, styles, help
 internal/platform/    the only package with build-tagged OS-specific code
@@ -80,11 +81,15 @@ value).
 Follows the Elm architecture:
 
 - `Model` holds the current `Listing`, cursor/offset, sort mode, search query,
-  and the active state (`browsing`, `searching`, `help`, `drive-select`).
-- `Update` handles `tea.KeyMsg` and resize messages, switching on state.
-- `View` renders the header, entry viewport, and footer with Lip Gloss.
+  active theme, mouse flag, and the active state (`browsing`, `searching`,
+  `help`, `drive-select`).
+- `Update` handles key, mouse, and resize messages, switching on state.
+- `View` renders the header, entry viewport, and footer with Lip Gloss and
+  sets the terminal mouse mode when enabled.
 - The listing is a **hand-rolled viewport** for pixel-faithful columns. Help
   uses `bubbles/viewport`; search uses `bubbles/textinput`.
+- `Theme` bundles all styles. `default` is color-coded; `mono` uses bold,
+  underline, and reverse video only.
 
 Terminal actions (alternate screen) are declared on `tea.View` in v2.
 
@@ -114,7 +119,8 @@ because that is not portable (or possible) for a child process.
 
 - **Unit tests** for `fsentry`: table-driven coverage of scan (empty, hidden,
   symlinks, Unicode, special characters, counts, totals), all six sort modes,
-  search matching/nth-match, size formatting, and attribute masks.
+  search matching/nth-match, IEC size formatting, and attribute masks.
+- **Config tests** for defaults, missing/partial/invalid files, and sort parsing.
 - **Platform tests** for attribute mapping: raw Win32 bitmasks plus real
   read-only/hidden/symlink files on Windows; dotfiles, permissions, and
   symlinks on Unix.
@@ -132,7 +138,7 @@ because that is not portable (or possible) for a child process.
 
 - `go build ./...` and `go test ./...` must pass on all CI platforms.
 - Release builds use `-trimpath` and inject the version via `-ldflags`.
-- Semantic versioning; `0.1.0` is the placeholder until the first RC.
+- Semantic versioning; the current pre-release is `0.2.0`.
 
 ## 9. Deliberate design decisions
 

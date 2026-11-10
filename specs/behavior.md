@@ -1,7 +1,7 @@
 # JCD — Behaviour Specification
 
 - **Status:** Draft
-- **Version:** 0.1.0
+- **Version:** 0.2.0
 - **Last updated:** 2026-11-10
 
 This document defines exactly how the app behaves. It is the reference for the
@@ -133,11 +133,13 @@ write permission.
 
 ## 6. Size formatting
 
-Sizes are rendered in binary steps using the legacy algorithm: divide by 1024
-while the value is **strictly greater** than 1024. Values below that threshold
-are shown as `<n> bytes`; larger values are shown with one decimal and a unit
-(`KB`, `MB`, `GB`, `TB`, `PB`, `EB`, `ZB`, `YB`). This boundary behaviour is
-intentionally preserved from the legacy app.
+Sizes use standard IEC binary units. Values below 1 KiB are shown as whole
+bytes (`512 B`). Larger values are divided by 1024 and shown with one decimal
+place and an IEC unit: `KiB`, `MiB`, `GiB`, `TiB`, `PiB`, `EiB`, `ZiB`, `YiB`.
+
+A value that would round to `1024.0` is promoted to the next unit, so
+1 MiB − 1 byte renders as `1.0 MiB` rather than `1024.0 KiB`. This is a
+deliberate change from the legacy `KB`/`MB` formatting.
 
 ## 7. Exit and output protocol
 
@@ -207,3 +209,34 @@ executable it invokes, which also makes the wrapper easy to test.
 - Minimum size: 80 columns × 20 rows. Smaller terminals cause exit code `3`
   with a stderr message.
 - The terminal is restored on every exit path (normal quit, error, signal).
+
+## 10. Configuration
+
+An optional JSON file configures the interface. It is resolved in this order:
+
+1. `--config <path>`, `-c <path>`, or `--config=<path>`
+2. the `JCD_CONFIG` environment variable
+3. `<UserConfigDir>/jcd/config.json`
+
+A missing file is not an error. Recognised fields:
+
+| Field   | Values | Default |
+| ------- | ------ | ------- |
+| `theme` | `default`, `mono` | `default` |
+| `sort`  | `name_asc`, `name_desc`, `date_asc`, `date_desc`, `size_asc`, `size_desc` | `name_asc` |
+| `mouse` | boolean | `false` |
+
+An invalid file, theme, or sort value is a usage error (exit code `2`).
+
+When `mouse` is enabled, the mouse wheel moves the selection (and scrolls the
+help screen) and left-clicking an entry selects it. Mouse support is off by
+default so the terminal's native text selection keeps working.
+
+## 11. Themes
+
+Two themes are available:
+
+- `default` — color-coded directories, files, links, and drives.
+- `mono` — no colors; relies on bold, underline, and reverse video.
+
+The help screen is a full-screen bordered panel in both themes.

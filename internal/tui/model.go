@@ -38,6 +38,18 @@ const (
 	StateDriveSelect
 )
 
+// Options configures a new model.
+type Options struct {
+	Theme string // "default" or "mono"; empty selects the default
+	Sort  fsentry.SortMode
+	Mouse bool
+}
+
+// DefaultOptions returns the default model options.
+func DefaultOptions() Options {
+	return Options{Theme: "default", Sort: fsentry.SortNameAsc}
+}
+
 // Model is the Bubble Tea model for the navigator.
 type Model struct {
 	dir      string
@@ -58,19 +70,33 @@ type Model struct {
 	quitting bool
 	chosen   string
 
+	theme Theme
+	mouse bool
+
 	openFile func(string) error
 }
 
-// New creates a model rooted at dir and performs the initial scan.
+// New creates a model rooted at dir with the default options.
 func New(dir string) (Model, error) {
+	return NewWithOptions(dir, DefaultOptions())
+}
+
+// NewWithOptions creates a model rooted at dir and performs the initial scan.
+func NewWithOptions(dir string, opts Options) (Model, error) {
+	theme, ok := ThemeByName(opts.Theme)
+	if !ok {
+		theme = DefaultTheme()
+	}
 	m := Model{
 		dir:      dir,
-		sortMode: fsentry.SortNameAsc,
+		sortMode: opts.Sort.Normalize(),
 		state:    StateBrowsing,
 		width:    defaultWidth,
 		height:   defaultHeight,
 		search:   newSearchInput(),
 		help:     viewport.New(),
+		theme:    theme,
+		mouse:    opts.Mouse,
 		openFile: platform.OpenFile,
 	}
 	if err := m.loadDir(dir); err != nil {

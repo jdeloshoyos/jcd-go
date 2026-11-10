@@ -1,7 +1,7 @@
 # JCD — Requirements
 
 - **Status:** Draft
-- **Version:** 0.1.0
+- **Version:** 0.2.0
 - **Last updated:** 2026-11-10
 
 Requirement IDs are stable references used by the test suite and by
@@ -74,6 +74,7 @@ Requirement IDs are stable references used by the test suite and by
 | `FR-DISP-4`  | Directories, files, symlinks, and drives are visually distinguishable. |
 | `FR-DISP-5`  | The selected entry is clearly highlighted. |
 | `FR-DISP-6`  | The footer shows the primary key hints. |
+| `FR-DISP-7`  | Sizes use standard IEC units (`B`, `KiB`, `MiB`, `GiB`, …). |
 
 ### 1.7 Help
 
@@ -99,6 +100,18 @@ Requirement IDs are stable references used by the test suite and by
 | `FR-EXIT-3`  | On failure the app prints a diagnostic to stderr and exits non-zero. |
 | `FR-EXIT-4`  | The output contains no UI escape sequences or decorations. |
 | `FR-EXIT-5`  | A PowerShell wrapper applies the returned path with `Set-Location`. |
+
+### 1.10 Configuration and mouse
+
+| ID            | Requirement |
+| ------------- | ----------- |
+| `FR-CONF-1`   | The app reads an optional JSON configuration from `--config`, `JCD_CONFIG`, or `<UserConfigDir>/jcd/config.json`. |
+| `FR-CONF-2`   | The theme is selectable (`default` or `mono`). |
+| `FR-CONF-3`   | The initial sort mode is configurable. |
+| `FR-CONF-4`   | Mouse support is configurable and off by default. |
+| `FR-CONF-5`   | An invalid configuration file, theme, or sort value is a usage error. |
+| `FR-MOUSE-1`  | With mouse enabled, the wheel moves the selection and scrolls the help screen. |
+| `FR-MOUSE-2`  | With mouse enabled, left-clicking an entry selects it. |
 
 ## 2. Non-functional requirements
 

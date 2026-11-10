@@ -3,6 +3,7 @@ package main
 import (
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -62,6 +63,54 @@ func TestRunTooManyArgs(t *testing.T) {
 	}
 	if !strings.Contains(stderr, "too many arguments") {
 		t.Errorf("stderr = %q, want a too-many-arguments error", stderr)
+	}
+}
+
+func TestRunInvalidConfig(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.json")
+	if err := os.WriteFile(path, []byte(`{"theme":`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	_, stderr, code := captureRun(t, []string{"--config", path, "."})
+
+	if code != cli.ExitUsage {
+		t.Errorf("exit code = %d, want %d", code, cli.ExitUsage)
+	}
+	if !strings.Contains(stderr, "config") {
+		t.Errorf("stderr = %q, want a config error", stderr)
+	}
+}
+
+func TestRunUnknownTheme(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.json")
+	if err := os.WriteFile(path, []byte(`{"theme":"rainbow"}`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	_, stderr, code := captureRun(t, []string{"--config", path, "."})
+
+	if code != cli.ExitUsage {
+		t.Errorf("exit code = %d, want %d", code, cli.ExitUsage)
+	}
+	if !strings.Contains(stderr, "unknown theme") {
+		t.Errorf("stderr = %q, want an unknown-theme error", stderr)
+	}
+}
+
+func TestRunUnknownSort(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.json")
+	if err := os.WriteFile(path, []byte(`{"sort":"sideways"}`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	_, stderr, code := captureRun(t, []string{"--config", path, "."})
+
+	if code != cli.ExitUsage {
+		t.Errorf("exit code = %d, want %d", code, cli.ExitUsage)
+	}
+	if !strings.Contains(stderr, "unknown sort") {
+		t.Errorf("stderr = %q, want an unknown-sort error", stderr)
 	}
 }
 

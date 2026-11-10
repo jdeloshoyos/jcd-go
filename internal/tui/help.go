@@ -1,15 +1,6 @@
 package tui
 
-import (
-	"charm.land/lipgloss/v2"
-
-	"jcd-go/internal/version"
-)
-
-var styleHelpBox = lipgloss.NewStyle().
-	Border(lipgloss.RoundedBorder()).
-	BorderForeground(lipgloss.Color("14")).
-	Padding(0, 1)
+import "jcd-go/internal/version"
 
 // helpText returns the full help document. Lines are kept within 72 columns so
 // they fit the minimum supported terminal width without wrapping.
@@ -57,6 +48,12 @@ Drives:
   press Enter to open its root. Esc quits and keeps the last browsed
   directory.
 
+Configuration:
+  An optional config.json can select the theme ("default" or "mono"),
+  the initial sort, and mouse support. See the project README.
+
+Sizes use IEC units: B, KiB, MiB, GiB, TiB, ... (1 KiB = 1024 B).
+
 JCD is a Go port of the PowerBASIC JVA Directory Navigator (v1.2, 2010).`
 
 // renderHelp draws the help panel. The panel occupies exactly the screen: a
@@ -67,9 +64,9 @@ func (m Model) renderHelp() string {
 	title := padRight(truncate("JCD Help — "+version.Version, innerWidth, "…"), innerWidth)
 	footer := padRight(truncate("[Up/Down/PgUp/PgDn]=Scroll  [F1]/[Esc]=Close", innerWidth, "…"), innerWidth)
 
-	content := styleHeaderPath.Render(title) + "\n" +
+	content := m.theme.HeaderPath.Render(title) + "\n" +
 		m.help.View() + "\n" +
-		styleFooter.Render(footer)
+		m.theme.Footer.Render(footer)
 
-	return styleHelpBox.Render(content)
+	return m.theme.HelpBox.Render(content)
 }

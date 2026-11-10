@@ -20,6 +20,9 @@ func (m Model) View() tea.View {
 	v := tea.NewView(m.render())
 	v.AltScreen = true
 	v.WindowTitle = "jcd"
+	if m.mouse {
+		v.MouseMode = tea.MouseModeCellMotion
+	}
 	return v
 }
 
@@ -60,7 +63,7 @@ func (m Model) renderPath() string {
 	if m.state == StateDriveSelect {
 		label = "System drives"
 	}
-	return styleHeaderPath.Width(m.width).Render(truncatePath(label, m.width))
+	return m.theme.HeaderPath.Width(m.width).Render(truncatePath(label, m.width))
 }
 
 func (m Model) renderInfo() string {
@@ -73,7 +76,7 @@ func (m Model) renderInfo() string {
 		if count > 0 {
 			pos = m.cursor + 1
 		}
-		return styleHeaderInfo.Render(twoColumn(
+		return m.theme.HeaderInfo.Render(twoColumn(
 			fmt.Sprintf("%d drives", count),
 			fmt.Sprintf("%d/%d", pos, count),
 			m.width,
@@ -95,12 +98,12 @@ func (m Model) renderInfo() string {
 
 	left := fmt.Sprintf("%d directories, %d files; %s used.", dirs, files, fsentry.HumanFileSize(total))
 	right := fmt.Sprintf("[F2]=Toggle sort (%s)  %d/%d", m.sortMode, pos, count)
-	return styleHeaderInfo.Render(twoColumn(left, right, m.width))
+	return m.theme.HeaderInfo.Render(twoColumn(left, right, m.width))
 }
 
 func (m Model) renderEntry(e fsentry.Entry, selected bool) string {
 	if selected {
-		return styleSelected.Width(m.width).Render(padRight(truncate(m.entryText(e), m.width, "…"), m.width))
+		return m.theme.Selected.Width(m.width).Render(padRight(truncate(m.entryText(e), m.width, "…"), m.width))
 	}
 	return m.entryStyled(e)
 }
@@ -124,7 +127,7 @@ func (m Model) entryText(e fsentry.Entry) string {
 
 func (m Model) entryStyled(e fsentry.Entry) string {
 	if e.Kind == fsentry.KindDrive {
-		return padRight(styleDrive.Render(truncate(m.entryText(e), m.width, "…")), m.width)
+		return padRight(m.theme.Drive.Render(truncate(m.entryText(e), m.width, "…")), m.width)
 	}
 
 	mask := e.Attrs.Mask()
@@ -137,15 +140,15 @@ func (m Model) entryStyled(e fsentry.Entry) string {
 	prefix := mask + " " + date + " "
 	name := truncate(e.Name, m.width-len(prefix)-len(suffix), "…")
 
-	nameStyle := styleFile
+	nameStyle := m.theme.File
 	switch e.Kind {
 	case fsentry.KindDir:
-		nameStyle = styleDir
+		nameStyle = m.theme.Dir
 	case fsentry.KindSymlink:
-		nameStyle = styleLink
+		nameStyle = m.theme.Link
 	}
 
-	rendered := styleMeta.Render(prefix) + nameStyle.Render(name) + styleMeta.Render(suffix)
+	rendered := m.theme.Meta.Render(prefix) + nameStyle.Render(name) + m.theme.Meta.Render(suffix)
 	return padRight(rendered, m.width)
 }
 
@@ -154,14 +157,14 @@ func (m Model) renderFooter() string {
 		return m.renderSearchFooter()
 	}
 	if m.status != "" {
-		return styleStatus.Width(m.width).Render(truncate(m.status, m.width, "…"))
+		return m.theme.Status.Width(m.width).Render(truncate(m.status, m.width, "…"))
 	}
 
 	keys := footerKeys
 	if m.state == StateDriveSelect {
 		keys = footerDriveKeys
 	}
-	return styleFooter.Width(m.width).Render(truncate(keys, m.width, "…"))
+	return m.theme.Footer.Width(m.width).Render(truncate(keys, m.width, "…"))
 }
 
 func (m Model) renderSearchFooter() string {
@@ -172,7 +175,7 @@ func (m Model) renderSearchFooter() string {
 
 	left := "Search: " + m.search.View()
 	right := fmt.Sprintf("%s  [Enter]=Jump [Tab]=Next [Esc]=Cancel", matchCountLabel(count))
-	return styleFooter.Width(m.width).Render(twoColumn(left, right, m.width))
+	return m.theme.Footer.Width(m.width).Render(twoColumn(left, right, m.width))
 }
 
 func matchCountLabel(n int) string {

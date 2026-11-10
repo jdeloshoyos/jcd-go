@@ -7,10 +7,10 @@ filesystem with the keyboard, and — on exit — reports the final directory ba
 to a thin shell wrapper so the wrapper can change the shell's working
 directory.
 
-> **Status:** early development (`0.1.0`). The interactive TUI is implemented:
+> **Status:** pre-release (`0.2.0`). The interactive TUI is implemented:
 > browsing, navigation, sort cycling, search, file opening, a scrollable help
-> screen, drive selection, and the PowerShell `cd` integration. Cross-platform
-> support and polish are next.
+> screen, drive selection, themes, optional mouse support, configuration, and
+> the PowerShell `cd` integration.
 
 ## Requirements
 
@@ -56,6 +56,29 @@ jcd -- -dashdir          # a directory whose name begins with '-'
 The wrapper must run in your current PowerShell session (via the function or
 alias above), not in a separate process. `JCD_BIN` overrides the executable it
 invokes; it defaults to `jcd`.
+
+## Configuration
+
+An optional JSON file can select the theme, initial sort, and mouse support.
+It is read from `--config <path>`, `JCD_CONFIG`, or the user config directory
+(`%AppData%\jcd\config.json` on Windows):
+
+```json
+{
+  "theme": "default",
+  "sort": "name_asc",
+  "mouse": false
+}
+```
+
+- `theme`: `default` (colors) or `mono` (no colors; bold/underline/reverse).
+- `sort`: `name_asc`, `name_desc`, `date_asc`, `date_desc`, `size_asc`, or
+  `size_desc`.
+- `mouse`: `true` enables wheel scrolling and click-to-select. Off by default
+  so native terminal text selection keeps working.
+
+A missing config file is fine; an invalid one is a usage error. Sizes are shown
+in IEC units (`B`, `KiB`, `MiB`, `GiB`, …).
 
 ## Keys
 
@@ -109,6 +132,5 @@ modified.
 
 ## Versioning
 
-The project follows [semantic versioning](https://semver.org/). During initial
-development the version stays at the `0.1.0` placeholder until the first
-release candidate.
+The project follows [semantic versioning](https://semver.org/). The current
+version is `0.2.0`; the first release candidate will be tagged `1.0.0-rc.1`.

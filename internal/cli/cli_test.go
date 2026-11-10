@@ -116,6 +116,25 @@ func TestParseArgs(t *testing.T) {
 		{"end of options", []string{"--", "-weird"}, Options{Action: ActionRun, Dir: "-weird"}, false},
 		{"end of options only", []string{"--"}, Options{Action: ActionRun}, false},
 		{"single dash path", []string{"-"}, Options{Action: ActionRun, Dir: "-"}, false},
+		{"config long", []string{"--config", "cfg.json"}, Options{Action: ActionRun, ConfigPath: "cfg.json"}, false},
+		{"config short", []string{"-c", "cfg.json"}, Options{Action: ActionRun, ConfigPath: "cfg.json"}, false},
+		{"config equals", []string{"--config=cfg.json"}, Options{Action: ActionRun, ConfigPath: "cfg.json"}, false},
+		{
+			"config and directory",
+			[]string{"--config", "cfg.json", "some/dir"},
+			Options{Action: ActionRun, Dir: "some/dir", ConfigPath: "cfg.json"},
+			false,
+		},
+		{
+			"directory then config",
+			[]string{"some/dir", "--config", "cfg.json"},
+			Options{Action: ActionRun, Dir: "some/dir", ConfigPath: "cfg.json"},
+			false,
+		},
+		{"config before help", []string{"--config", "cfg.json", "--help"}, Options{Action: ActionHelp}, false},
+		{"config after end of options", []string{"--", "--config"}, Options{Action: ActionRun, Dir: "--config"}, false},
+		{"config missing value", []string{"--config"}, Options{}, true},
+		{"config short missing value", []string{"-c"}, Options{}, true},
 		{"too many args", []string{"a", "b"}, Options{}, true},
 		{"unknown option", []string{"-x"}, Options{}, true},
 	}
@@ -144,7 +163,7 @@ func TestUsage(t *testing.T) {
 	Usage(&b, "9.9.9")
 	out := b.String()
 
-	for _, want := range []string{"jcd 9.9.9", "Usage:", "[directory]", "--version"} {
+	for _, want := range []string{"jcd 9.9.9", "Usage:", "[directory]", "--version", "--config"} {
 		if !strings.Contains(out, want) {
 			t.Errorf("usage missing %q:\n%s", want, out)
 		}

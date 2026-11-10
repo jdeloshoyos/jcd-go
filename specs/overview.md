@@ -1,7 +1,7 @@
 # JCD — Product Overview
 
 - **Status:** Draft
-- **Version:** 0.1.0
+- **Version:** 0.2.0
 - **Last updated:** 2026-11-10
 
 ## 1. Vision
@@ -24,7 +24,7 @@ advantage of a cross-platform runtime and a modern TUI stack.
   cheap to add.
 - **Spec-driven and well tested**: behaviour is described in `specs/` and
   protected by unit, integration, and regression tests.
-- **Semantic versioning**, starting from the `0.1.0` placeholder.
+- **Semantic versioning**, currently in the `0.2.x` pre-release series.
 
 ## 3. Non-goals (initial)
 
