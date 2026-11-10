@@ -23,15 +23,19 @@ parsing, and redraw.
 ## 2. Package layout
 
 ```
-cmd/jcd/            command entry point: arguments, run loop, output protocol
-internal/fsentry/   portable model + pure logic (no TUI, no OS-specific code)
-internal/tui/       Bubble Tea model, update, view, styles, components
-internal/platform/  the only package with build-tagged OS-specific code
-internal/shellout/  path emission and exit codes (may merge into cmd initially)
-scripts/            shell wrappers (PowerShell first)
-specs/              living specifications
-testdata/           fixture trees for tests
+cmd/jcd/              command entry point: arguments, run loop, output protocol
+internal/cli/         start-directory resolution, terminal size, exit codes
+internal/fsentry/     portable model + pure logic (no TUI, no OS-specific code)
+internal/tui/         Bubble Tea model, update, view, styles
+internal/platform/    the only package with build-tagged OS-specific code
+internal/integration/ end-to-end tests for the shell wrapper contract
+scripts/              shell wrappers (PowerShell first)
+specs/                living specifications
+testdata/             fixture trees for tests
 ```
+
+`internal/shellout` is intentionally absent: path emission and exit codes are
+small enough to live in `cmd/jcd` and `internal/cli`.
 
 ## 3. Dependency rules
 
@@ -83,6 +87,17 @@ Follows the Elm architecture:
 
 Terminal actions (alternate screen) are declared on `tea.View` in v2.
 
+### 5.1 Rendering and streams
+
+The interface renders to **stderr** (`tea.WithOutput(os.Stderr)`). The shell
+wrapper captures stdout to obtain the final directory, so stdout must carry
+exactly one line: the resolved path. Input still comes from the terminal;
+Bubble Tea v2 opens the TTY automatically when stdin is not a terminal.
+
+The wrapper is invoked in the caller's session and applies the path with
+`Set-Location`. The Go process never changes its parent's directory directly,
+because that is not portable (or possible) for a child process.
+
 ## 6. Platform abstraction (`internal/platform`)
 
 | File                 | Responsibility |
@@ -117,4 +132,6 @@ Terminal actions (alternate screen) are declared on `tea.View` in v2.
 - **Explicit search mode** instead of the legacy silent timed search.
 - **Clean stdout protocol** (single path line) instead of the `*`-delimited
   format, which breaks on paths containing `*`.
+- **UI on stderr, result on stdout** so a capturing wrapper receives only the
+  path.
 - **Windows-first**; the platform layer keeps Unix support a small addition.

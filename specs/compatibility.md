@@ -71,10 +71,14 @@ value on Unix.
 - [x] Case-insensitive substring search, nth match
 - [x] Nine-character attribute mask in legacy order
 - [x] `HumanFileSize` units and rounding
-- [ ] Full key set in the TUI (later milestone)
-- [ ] Drive-selection screen (later milestone)
+- [x] Browsing and navigation keys in the TUI
+- [x] Sort cycling with F2
+- [x] Explicit search mode with Tab cycling
+- [x] File opening with the default handler
+- [x] PowerShell wrapper end-to-end
 - [ ] Help screen (later milestone)
-- [ ] PowerShell wrapper end-to-end (later milestone)
+- [ ] Drive-selection screen (later milestone)
+- [ ] Full key set including help and drives (later milestone)
 
 ## 5. Out of scope for parity
 

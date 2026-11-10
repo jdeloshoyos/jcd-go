@@ -1,18 +1,36 @@
 # Shell wrappers
 
-This directory will contain the thin shell integrations that consume the path
-printed by the `jcd` executable and change the parent shell's working
-directory.
+Thin shell integrations consume the path printed by the `jcd` executable and
+change the parent shell's working directory.
 
-Planned for the TUI milestone (M2):
+## PowerShell — `jcd.ps1`
 
-- `jcd.ps1` — PowerShell wrapper (`Set-Location`).
+The wrapper runs the navigator, captures the final path from stdout, and applies
+it with `Set-Location`. The interface renders to stderr so stdout stays clean.
 
-Later (cross-platform milestone):
+Add one of these to your PowerShell profile:
+
+```powershell
+# Recommended: a function that passes arguments through.
+function jcd { & "C:\tools\jcd\scripts\jcd.ps1" @args }
+
+# Or an alias.
+Set-Alias jcd "C:\tools\jcd\scripts\jcd.ps1"
+```
+
+Then:
+
+```powershell
+jcd
+jcd C:\some\directory
+```
+
+Set `JCD_BIN` to point at a specific executable (defaults to `jcd`). The
+integration tests use this override.
+
+## Planned
 
 - `jcd.cmd` — cmd.exe wrapper (`for /f` + `cd /d`).
 - `jcd.sh` / `jcd.fish` — POSIX shell and fish functions.
 
-The Go process never changes the parent shell's directory itself; it prints the
-resolved path on stdout, and these wrappers apply it. See
-[`../specs/behavior.md`](../specs/behavior.md) §7 for the output protocol.
+See [`../specs/behavior.md`](../specs/behavior.md) §7 for the output protocol.

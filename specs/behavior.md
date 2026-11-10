@@ -164,15 +164,28 @@ Errors are written to stderr and the process exits non-zero:
 ### 7.3 Shell wrapper
 
 A thin wrapper consumes the stdout line and changes the parent shell's working
-directory. For PowerShell:
+directory. Because the wrapper captures stdout, the TUI renders to **stderr**;
+stdout carries only the path. For PowerShell:
 
 ```powershell
-$target = & jcd.exe $args
-if ($LASTEXITCODE -eq 0 -and $target) { Set-Location -LiteralPath $target }
+$binary = if ($env:JCD_BIN) { $env:JCD_BIN } else { 'jcd' }
+$global:LASTEXITCODE = 0
+$result = & $binary @args
+if ($LASTEXITCODE -ne 0) { return }
+
+$target = $result | Where-Object { $_ } | Select-Object -First 1
+if ($target -and (Test-Path -LiteralPath $target -PathType Container)) {
+    Set-Location -LiteralPath $target
+}
 ```
 
 The Go process never attempts to modify the parent shell's directory directly
-(a child process cannot portably change its parent's working directory).
+(a child process cannot portably change its parent's working directory). The
+wrapper must therefore run in the caller's session (an alias or function in the
+PowerShell profile), not in a separate process.
+
+The repository ships this wrapper as `scripts/jcd.ps1`. `JCD_BIN` overrides the
+executable it invokes, which also makes the wrapper easy to test.
 
 ## 8. Path resolution at startup
 

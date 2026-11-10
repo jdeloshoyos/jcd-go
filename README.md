@@ -2,30 +2,72 @@
 
 A modern Go port of the PowerBASIC **JVA Directory Navigator** (v1.2, 2010).
 
-The application shows a directory listing in the terminal, lets you navigate
-the filesystem with the keyboard, and — on exit — reports the final directory
-back to a thin shell wrapper so the wrapper can change the shell's working
+JCD shows a directory listing in the terminal, lets you navigate the
+filesystem with the keyboard, and — on exit — reports the final directory back
+to a thin shell wrapper so the wrapper can change the shell's working
 directory.
 
-> **Status:** early development (`0.1.0`). The interactive TUI is not
-> implemented yet; the current milestone provides the scaffold and the pure
-> filesystem core (`internal/fsentry`).
+> **Status:** early development (`0.1.0`). The interactive TUI MVP is
+> implemented: browsing, navigation, sort cycling, search, file opening, and
+> the PowerShell `cd` integration. Help and drive selection are next.
 
 ## Requirements
 
 - Go 1.27 or newer
+- PowerShell 5.1+ or PowerShell 7+ (for the wrapper)
 
 ## Build
 
 ```sh
-go build ./...
-```
-
-A runnable binary will be produced in `cmd/jcd` once the TUI lands:
-
-```sh
 go build -o jcd ./cmd/jcd
 ```
+
+On Windows this produces `jcd.exe`.
+
+## Use
+
+A child process cannot change its parent shell's working directory, so a thin
+wrapper runs `jcd`, captures the final path from **stdout**, and applies it
+with `Set-Location`. The interface itself renders to **stderr**, keeping stdout
+clean for the path.
+
+Put the binary on `PATH` (or set `JCD_BIN` to its full path), then add one of
+these to your PowerShell profile:
+
+```powershell
+# Option A: a function (recommended; passes arguments reliably)
+function jcd { & "C:\tools\jcd\scripts\jcd.ps1" @args }
+
+# Option B: an alias
+Set-Alias jcd "C:\tools\jcd\scripts\jcd.ps1"
+```
+
+Then:
+
+```powershell
+jcd                      # browse the current directory
+jcd C:\some\directory    # start somewhere else
+```
+
+The wrapper must run in your current PowerShell session (via the function or
+alias above), not in a separate process. `JCD_BIN` overrides the executable it
+invokes; it defaults to `jcd`.
+
+## Keys
+
+| Key | Action |
+| --- | --- |
+| Up / Down | Move the cursor |
+| PgUp / PgDn | Move one page |
+| Home / End | First / last entry |
+| Enter | Enter a directory or open a file |
+| Backspace | Go to the parent directory |
+| F2 | Cycle sort mode (Name/Date/Size × Asc/Desc) |
+| `/` | Enter search mode |
+| Enter (search) | Jump to the first match |
+| Tab (search) | Next match |
+| Esc (search) | Cancel search |
+| Esc | Quit and report the current directory |
 
 ## Test
 
@@ -37,13 +79,15 @@ go vet ./...
 ## Project layout
 
 ```
-cmd/jcd/          command entry point
-internal/fsentry/ portable filesystem model and pure logic (scan, sort, search, size)
-internal/platform/ OS-specific behaviour (attributes, drives, open-file)
-internal/tui/     Bubble Tea user interface (later milestone)
-scripts/          shell wrappers (PowerShell first)
-specs/            living product specifications
-legacy-app/       original PowerBASIC sources — reference only, never modified
+cmd/jcd/            command entry point, argument handling, output protocol
+internal/cli/       start-directory resolution, terminal size, exit codes
+internal/fsentry/   portable filesystem model and pure logic (scan, sort, search, size)
+internal/platform/  OS-specific behaviour (attributes, drives, open-file)
+internal/tui/       Bubble Tea model, update, view, and styles
+internal/integration/ end-to-end wrapper tests
+scripts/            shell wrappers (PowerShell first)
+specs/              living product specifications
+legacy-app/         original PowerBASIC sources — reference only, never modified
 ```
 
 ## Specifications
