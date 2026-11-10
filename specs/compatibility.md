@@ -1,7 +1,7 @@
 # JCD — Legacy Compatibility
 
 - **Status:** Draft
-- **Version:** 0.2.0
+- **Version:** 1.0.0
 - **Last updated:** 2026-11-10
 
 This document maps the PowerBASIC legacy application (`legacy-app/`) to the Go

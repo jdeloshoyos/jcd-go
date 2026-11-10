@@ -55,6 +55,33 @@ func TestCountMatches(t *testing.T) {
 	}
 }
 
+func TestHighlightRange(t *testing.T) {
+	tests := []struct {
+		name  string
+		s     string
+		query string
+		start int
+		end   int
+	}{
+		{"match in middle", "main.go", "in", 2, 4},
+		{"case-insensitive", "Catalog", "CAT", 0, 3},
+		{"match at end", "README.md", "md", 7, 9},
+		{"first occurrence only", "banana", "an", 1, 3},
+		{"no match", "dog.png", "zzz", -1, -1},
+		{"empty query", "README.md", "", -1, -1},
+		{"whole name", "docs", "docs", 0, 4},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			start, end := HighlightRange(tt.s, tt.query)
+			if start != tt.start || end != tt.end {
+				t.Errorf("HighlightRange(%q, %q) = (%d, %d), want (%d, %d)",
+					tt.s, tt.query, start, end, tt.start, tt.end)
+			}
+		})
+	}
+}
+
 func TestNthMatch(t *testing.T) {
 	entries := searchEntries()
 	tests := []struct {

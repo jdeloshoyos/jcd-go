@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 
 	"jcd-go/internal/fsentry"
 )
@@ -102,54 +103,70 @@ func (m Model) renderInfo() string {
 }
 
 func (m Model) renderEntry(e fsentry.Entry, selected bool) string {
+	if e.Kind == fsentry.KindDrive {
+		text := e.Name + e.DriveType.Label()
+		if selected {
+			return m.theme.Selected.Width(m.width).Render(padRight(truncate(text, m.width, "…"), m.width))
+		}
+		return padRight(m.theme.Drive.Render(truncate(text, m.width, "…")), m.width)
+	}
+
+	mask := e.Attrs.Mask()
+	date := e.ModTime.Format(dateLayout)
+	suffix := ""
+	if e.Kind == fsentry.KindFile {
+		suffix = " (" + fsentry.HumanFileSize(e.Size) + ")"
+	}
+	prefix := mask + " " + date + " "
+
+	name := truncate(e.Name, m.width-len(prefix)-len(suffix), "…")
+	start, end := m.matchRange(name)
+
 	if selected {
-		return m.theme.Selected.Width(m.width).Render(padRight(truncate(m.entryText(e), m.width, "…"), m.width))
+		line := m.theme.Selected.Render(prefix) +
+			renderHighlighted(name, m.theme.Selected, m.theme.Match, start, end) +
+			m.theme.Selected.Render(suffix)
+		return padRightStyled(line, m.width, m.theme.Selected)
 	}
-	return m.entryStyled(e)
+
+	nameStyle := m.nameStyle(e)
+	line := m.theme.Meta.Render(prefix) +
+		renderHighlighted(name, nameStyle, m.theme.Match, start, end) +
+		m.theme.Meta.Render(suffix)
+	return padRight(line, m.width)
 }
 
-func (m Model) entryText(e fsentry.Entry) string {
-	if e.Kind == fsentry.KindDrive {
-		return e.Name + e.DriveType.Label()
-	}
-
-	mask := e.Attrs.Mask()
-	date := e.ModTime.Format(dateLayout)
-	suffix := ""
-	if e.Kind == fsentry.KindFile {
-		suffix = " (" + fsentry.HumanFileSize(e.Size) + ")"
-	}
-
-	prefix := mask + " " + date + " "
-	name := truncate(e.Name, m.width-len(prefix)-len(suffix), "…")
-	return prefix + name + suffix
-}
-
-func (m Model) entryStyled(e fsentry.Entry) string {
-	if e.Kind == fsentry.KindDrive {
-		return padRight(m.theme.Drive.Render(truncate(m.entryText(e), m.width, "…")), m.width)
-	}
-
-	mask := e.Attrs.Mask()
-	date := e.ModTime.Format(dateLayout)
-	suffix := ""
-	if e.Kind == fsentry.KindFile {
-		suffix = " (" + fsentry.HumanFileSize(e.Size) + ")"
-	}
-
-	prefix := mask + " " + date + " "
-	name := truncate(e.Name, m.width-len(prefix)-len(suffix), "…")
-
-	nameStyle := m.theme.File
+// nameStyle returns the style used for an entry's name when it is not selected.
+func (m Model) nameStyle(e fsentry.Entry) lipgloss.Style {
 	switch e.Kind {
 	case fsentry.KindDir:
-		nameStyle = m.theme.Dir
+		return m.theme.Dir
 	case fsentry.KindSymlink:
-		nameStyle = m.theme.Link
+		return m.theme.Link
+	default:
+		return m.theme.File
 	}
+}
 
-	rendered := m.theme.Meta.Render(prefix) + nameStyle.Render(name) + m.theme.Meta.Render(suffix)
-	return padRight(rendered, m.width)
+// matchRange returns the byte range of the active search term within name, or
+// (-1, -1) when no search is active or the name does not match.
+func (m Model) matchRange(name string) (int, int) {
+	if m.state != StateSearching {
+		return -1, -1
+	}
+	return fsentry.HighlightRange(name, m.search.Value())
+}
+
+// renderHighlighted renders name with base, emphasizing the [start, end)
+// substring with the match style. The match style is layered on top of base so
+// the background (e.g. the selected row) and other base attributes are kept.
+func renderHighlighted(name string, base, match lipgloss.Style, start, end int) string {
+	if start < 0 || start >= end || end > len(name) {
+		return base.Render(name)
+	}
+	return base.Render(name[:start]) +
+		match.Inherit(base).Render(name[start:end]) +
+		base.Render(name[end:])
 }
 
 func (m Model) renderFooter() string {
@@ -174,7 +191,7 @@ func (m Model) renderSearchFooter() string {
 	}
 
 	left := "Search: " + m.search.View()
-	right := fmt.Sprintf("%s  [Enter]=Jump [Tab]=Next [Esc]=Cancel", matchCountLabel(count))
+	right := fmt.Sprintf("%s  [Enter]=Open [Tab]=Next [Esc]=Cancel", matchCountLabel(count))
 	return m.theme.Footer.Width(m.width).Render(twoColumn(left, right, m.width))
 }
 

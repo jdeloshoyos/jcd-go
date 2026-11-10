@@ -32,6 +32,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.state == StateSearching {
 			var cmd tea.Cmd
 			m.search, cmd = m.search.Update(msg)
+			m.followFirstMatch()
 			return m, cmd
 		}
 
@@ -159,13 +160,11 @@ func (m Model) updateSearching(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	case "ctrl+c":
 		return m.quit()
 	case "esc":
-		m.state = StateBrowsing
-		m.search.Blur()
-		m.search.Reset()
-		m.status = ""
+		m.exitSearch()
 		return m, nil
 	case "enter":
-		m.jumpFirstMatch()
+		m.exitSearch()
+		m.enter()
 		return m, nil
 	case "tab", "down":
 		m.jumpNextMatch(1)
@@ -176,6 +175,7 @@ func (m Model) updateSearching(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	default:
 		var cmd tea.Cmd
 		m.search, cmd = m.search.Update(msg)
+		m.followFirstMatch()
 		return m, cmd
 	}
 }

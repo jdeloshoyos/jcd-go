@@ -215,7 +215,7 @@ func TestChosenDirAfterNavigation(t *testing.T) {
 	}
 }
 
-func TestSearchJumpAndCancel(t *testing.T) {
+func TestSearchLiveFollowsFirstMatch(t *testing.T) {
 	m, _ := newTestModel(t)
 
 	m = press(t, m, runeKey('/'))
@@ -223,14 +223,13 @@ func TestSearchJumpAndCancel(t *testing.T) {
 		t.Fatalf("state = %v, want searching", m.State())
 	}
 
+	// Typing selects the first match immediately, without waiting for Enter.
 	m = press(t, m, runeKey('c'), runeKey('h'), runeKey('a'), runeKey('r'))
 	if got := m.search.Value(); got != "char" {
 		t.Fatalf("query = %q, want %q", got, "char")
 	}
-
-	m = press(t, m, key(tea.KeyEnter))
 	if m.Cursor() != 2 {
-		t.Errorf("after jump: cursor = %d, want 2 (charlie.txt)", m.Cursor())
+		t.Errorf("cursor = %d, want 2 (charlie.txt)", m.Cursor())
 	}
 
 	m = press(t, m, key(tea.KeyEscape))
@@ -242,12 +241,55 @@ func TestSearchJumpAndCancel(t *testing.T) {
 	}
 }
 
+func TestSearchEnterOpensFile(t *testing.T) {
+	m, dir := newTestModel(t)
+
+	var opened string
+	m.openFile = func(path string) error {
+		opened = path
+		return nil
+	}
+
+	m = press(t, m, runeKey('/'), runeKey('c'), runeKey('h'), runeKey('a'), runeKey('r'))
+	m = press(t, m, key(tea.KeyEnter))
+
+	if m.State() != StateBrowsing {
+		t.Errorf("state = %v, want browsing", m.State())
+	}
+	if want := filepath.Join(dir, "charlie.txt"); opened != want {
+		t.Errorf("opened %q, want %q", opened, want)
+	}
+	if m.Dir() != dir {
+		t.Errorf("opening a file changed the directory to %q", m.Dir())
+	}
+	if m.search.Value() != "" {
+		t.Errorf("query = %q, want empty after enter", m.search.Value())
+	}
+}
+
+func TestSearchEnterOpensDirectory(t *testing.T) {
+	m, dir := newTestModel(t)
+
+	m = press(t, m, runeKey('/'), runeKey('a'), runeKey('l'), runeKey('p'))
+	if m.Cursor() != 0 {
+		t.Fatalf("cursor = %d, want 0 (alpha)", m.Cursor())
+	}
+
+	m = press(t, m, key(tea.KeyEnter))
+
+	if m.State() != StateBrowsing {
+		t.Errorf("state = %v, want browsing", m.State())
+	}
+	if want := filepath.Join(dir, "alpha"); m.Dir() != want {
+		t.Errorf("Dir() = %q, want %q", m.Dir(), want)
+	}
+}
+
 func TestSearchTabCyclesMatches(t *testing.T) {
 	m, _ := newTestModel(t)
 
-	// "a" matches alpha, beta and charlie.
+	// "a" matches alpha, beta and charlie; typing selects the first.
 	m = press(t, m, runeKey('/'), runeKey('a'))
-	m = press(t, m, key(tea.KeyEnter))
 	if m.Cursor() != 0 {
 		t.Fatalf("first match: cursor = %d, want 0", m.Cursor())
 	}
@@ -272,10 +314,16 @@ func TestSearchNoMatch(t *testing.T) {
 	m, _ := newTestModel(t)
 	before := m.Cursor()
 
-	m = press(t, m, runeKey('/'), runeKey('z'), runeKey('z'), key(tea.KeyEnter))
-
+	// Typing a query with no matches leaves the selection unchanged.
+	m = press(t, m, runeKey('/'), runeKey('z'), runeKey('z'))
 	if m.Cursor() != before {
 		t.Errorf("cursor changed to %d on no match, want %d", m.Cursor(), before)
+	}
+
+	// Tab reports that nothing matches and keeps the selection.
+	m = press(t, m, key(tea.KeyTab))
+	if m.Cursor() != before {
+		t.Errorf("cursor changed to %d on Tab with no match, want %d", m.Cursor(), before)
 	}
 	if m.status != "no matches" {
 		t.Errorf("status = %q, want %q", m.status, "no matches")
@@ -482,7 +530,6 @@ func TestSearchShiftTab(t *testing.T) {
 	m, _ := newTestModel(t)
 
 	m = press(t, m, runeKey('/'), runeKey('a'))
-	m = press(t, m, key(tea.KeyEnter))
 	if m.Cursor() != 0 {
 		t.Fatalf("first match: cursor = %d, want 0", m.Cursor())
 	}
@@ -490,6 +537,27 @@ func TestSearchShiftTab(t *testing.T) {
 	m = press(t, m, tea.KeyPressMsg{Code: tea.KeyTab, Mod: tea.ModShift})
 	if m.Cursor() != 2 {
 		t.Errorf("after shift+tab: cursor = %d, want 2 (wrapped)", m.Cursor())
+	}
+}
+
+func TestSearchHighlightsMatches(t *testing.T) {
+	m, _ := newTestModel(t)
+	next, _ := m.Update(tea.WindowSizeMsg{Width: 100, Height: 24})
+	m = next.(Model)
+
+	// "a" matches alpha (selected by live-follow) plus the unselected beta and
+	// charlie rows, so both the selected and unselected styles must appear.
+	m = press(t, m, runeKey('/'), runeKey('a'))
+
+	out := m.render()
+	selectedMatch := m.theme.Match.Inherit(m.theme.Selected).Render("a")
+	unselectedMatch := m.theme.Match.Inherit(m.theme.File).Render("a")
+
+	if !strings.Contains(out, selectedMatch) {
+		t.Errorf("selected row does not highlight the match:\n%q", out)
+	}
+	if got := strings.Count(out, unselectedMatch); got < 2 {
+		t.Errorf("unselected rows highlight the match %d time(s), want at least 2:\n%q", got, out)
 	}
 }
 

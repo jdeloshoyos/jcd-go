@@ -23,7 +23,8 @@ Commands:
 
 Search:
   Matching is case-insensitive and matches anywhere in the entry name.
-    Enter       Jump to the first match
+  Typing moves the selection to the first match.
+    Enter       Open the selected entry and leave search
     Tab         Next match (wraps)
     Shift+Tab   Previous match
     Esc         Cancel the search

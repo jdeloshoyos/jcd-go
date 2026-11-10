@@ -7,7 +7,7 @@ filesystem with the keyboard, and — on exit — reports the final directory ba
 to a thin shell wrapper so the wrapper can change the shell's working
 directory.
 
-> **Status:** pre-release (`0.2.0`). The interactive TUI is implemented:
+> **Status:** released (`1.0.0`). The interactive TUI is implemented:
 > browsing, navigation, sort cycling, search, file opening, a scrollable help
 > screen, drive selection, themes, optional mouse support, configuration, and
 > the PowerShell `cd` integration.
@@ -91,8 +91,8 @@ in IEC units (`B`, `KiB`, `MiB`, `GiB`, …).
 | Backspace | Go to the parent directory (drive list at a drive root) |
 | F1 / ? | Toggle the help screen |
 | F2 | Cycle sort mode (Name/Date/Size × Asc/Desc) |
-| `/` | Enter search mode |
-| Enter (search) | Jump to the first match |
+| `/` | Enter search mode (typing selects the first match) |
+| Enter (search) | Open the selected entry, then leave search |
 | Tab / Shift+Tab (search) | Next / previous match |
 | Esc (search) | Cancel search |
 | Esc | Quit and report the current directory |
@@ -133,4 +133,4 @@ modified.
 ## Versioning
 
 The project follows [semantic versioning](https://semver.org/). The current
-version is `0.2.0`; the first release candidate will be tagged `1.0.0-rc.1`.
+version is `1.0.0`.

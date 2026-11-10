@@ -57,6 +57,7 @@ func TestSnapshots(t *testing.T) {
 		{"search", func(m *Model) {
 			m.startSearch()
 			m.search.SetValue("ma")
+			m.followFirstMatch()
 		}},
 		{"help", func(m *Model) { m.startHelp(StateBrowsing) }},
 		{"drive_select", func(m *Model) {

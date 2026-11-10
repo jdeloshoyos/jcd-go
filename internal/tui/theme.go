@@ -18,6 +18,7 @@ type Theme struct {
 	Drive      lipgloss.Style
 	Meta       lipgloss.Style
 	Selected   lipgloss.Style
+	Match      lipgloss.Style
 	HelpBox    lipgloss.Style
 }
 
@@ -34,6 +35,7 @@ func DefaultTheme() Theme {
 		Drive:      lipgloss.NewStyle().Foreground(lipgloss.Color("10")),
 		Meta:       lipgloss.NewStyle().Foreground(lipgloss.Color("8")),
 		Selected:   lipgloss.NewStyle().Background(lipgloss.Color("7")).Foreground(lipgloss.Color("0")),
+		Match:      lipgloss.NewStyle().Foreground(lipgloss.Color("5")).Bold(true),
 		HelpBox: lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(lipgloss.Color("14")).
@@ -54,6 +56,7 @@ func MonoTheme() Theme {
 		Drive:      lipgloss.NewStyle().Bold(true).Underline(true),
 		Meta:       lipgloss.NewStyle(),
 		Selected:   lipgloss.NewStyle().Reverse(true),
+		Match:      lipgloss.NewStyle().Underline(true),
 		HelpBox:    lipgloss.NewStyle().Border(lipgloss.NormalBorder()).Padding(0, 1),
 	}
 }

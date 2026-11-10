@@ -1,7 +1,7 @@
 # JCD — Architecture
 
 - **Status:** Draft
-- **Version:** 0.2.0
+- **Version:** 1.0.0
 - **Last updated:** 2026-11-10
 
 ## 1. Technology stack
@@ -138,7 +138,7 @@ because that is not portable (or possible) for a child process.
 
 - `go build ./...` and `go test ./...` must pass on all CI platforms.
 - Release builds use `-trimpath` and inject the version via `-ldflags`.
-- Semantic versioning; the current pre-release is `0.2.0`.
+- Semantic versioning; the current release is `1.0.0`.
 
 ## 9. Deliberate design decisions
 

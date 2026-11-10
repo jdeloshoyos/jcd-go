@@ -1,7 +1,7 @@
 # JCD — Requirements
 
 - **Status:** Draft
-- **Version:** 0.2.0
+- **Version:** 1.0.0
 - **Last updated:** 2026-11-10
 
 Requirement IDs are stable references used by the test suite and by
@@ -59,10 +59,12 @@ Requirement IDs are stable references used by the test suite and by
 | ------------ | ----------- |
 | `FR-SRCH-1`  | `/` enters an explicit search-input mode. |
 | `FR-SRCH-2`  | Matching is a case-insensitive substring match anywhere in the entry name. |
-| `FR-SRCH-3`  | Enter jumps to the first match; Tab cycles through matches, wrapping around. |
+| `FR-SRCH-3`  | Typing moves the selection to the first match; Tab cycles through matches, wrapping around. |
 | `FR-SRCH-4`  | Esc cancels search mode without changing the selection. |
-| `FR-SRCH-5`  | A search with no matches gives audible/visual feedback and leaves the selection unchanged. |
+| `FR-SRCH-5`  | A search with no matches leaves the selection unchanged and shows a zero match count. |
 | `FR-SRCH-6`  | The current search pattern is shown in the footer while searching. |
+| `FR-SRCH-7`  | Enter opens the selected entry (entering a directory or launching a file) and exits search mode. |
+| `FR-SRCH-8`  | The matched substring is highlighted in every matching row while searching. |
 
 ### 1.6 Display
 

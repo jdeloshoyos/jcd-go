@@ -1,7 +1,7 @@
 # JCD — Behaviour Specification
 
 - **Status:** Draft
-- **Version:** 0.2.0
+- **Version:** 1.0.0
 - **Last updated:** 2026-11-10
 
 This document defines exactly how the app behaves. It is the reference for the
@@ -39,11 +39,15 @@ Esc in `searching` returns to `browsing`; Esc in `browsing` quits. F1 toggles
 
 ### 2.2 Searching
 
+Typing a query moves the selection to the first match immediately; the matched
+substring is highlighted in every matching row.
+
 | Key     | Action |
 | ------- | ------ |
-| `Enter` | Jump to the first match; remain in search mode. |
+| `Enter` | Open the selected entry (enter a directory or launch a file), then leave search mode. |
 | `Tab`   | Jump to the next match, wrapping around. |
-| `Esc`   | Cancel search mode; selection is unchanged. |
+| `Shift+Tab` | Jump to the previous match. |
+| `Esc`   | Cancel search mode; the selection is left where it is. |
 | `←`/`→` | Move the text cursor within the query. |
 | `Backspace` | Delete the previous character. |
 
@@ -69,10 +73,15 @@ Esc in `searching` returns to `browsing`; Esc in `browsing` quits. F1 toggles
 - Search is case-insensitive and matches **anywhere** in the entry name
   (substring), not only at the start.
 - An empty query matches nothing.
-- `Enter` selects the first match.
+- Typing moves the selection to the first match as soon as one exists; when
+  nothing matches, the selection is left unchanged.
+- The matched substring is highlighted in every matching row (selected or not)
+  while search mode is active.
+- `Enter` opens the selected entry — entering a directory or launching a file —
+  and leaves search mode.
 - `Tab` advances to the next match; after the last match it wraps to the first.
-- If there are no matches, the app emits a short feedback signal (beep or a
-  visual flash) and keeps the current selection.
+- If there are no matches, the footer shows a zero match count and the
+  selection is unchanged.
 - Search mode does not modify the listing; it only moves the selection.
 
 ## 4. Sorting rules

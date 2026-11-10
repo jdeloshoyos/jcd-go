@@ -43,6 +43,16 @@ func padRight(s string, width int) string {
 	return s + strings.Repeat(" ", width-w)
 }
 
+// padRightStyled pads s with spaces rendered in style to width display cells.
+// It keeps a full-width background (for example, on the selected row).
+func padRightStyled(s string, width int, style lipgloss.Style) string {
+	w := lipgloss.Width(s)
+	if w >= width {
+		return s
+	}
+	return s + style.Render(strings.Repeat(" ", width-w))
+}
+
 // twoColumn lays out left and right on a single line of the given width,
 // truncating the left side if there is not enough room.
 func twoColumn(left, right string, width int) string {

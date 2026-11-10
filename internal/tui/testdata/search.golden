@@ -1,5 +1,5 @@
 /demo/project
-2 directories, 3 files; 2.5 KiB used.           [F2]=Toggle sort (Name Asc)  1/5
+2 directories, 3 files; 2.5 KiB used.           [F2]=Toggle sort (Name Asc)  4/5
 d-------- 2021/01/02 15:04:05 docs
 d-------- 2021/01/02 15:04:05 src
 -l------- 2021/01/02 15:04:05 latest
@@ -21,4 +21,4 @@ d-------- 2021/01/02 15:04:05 src
 
 
 
-Search: ma                         1 match  [Enter]=Jump [Tab]=Next [Esc]=Cancel
+Search: ma                         1 match  [Enter]=Open [Tab]=Next [Esc]=Cancel

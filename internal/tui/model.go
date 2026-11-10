@@ -293,6 +293,28 @@ func (m *Model) startSearch() {
 	m.status = ""
 }
 
+// exitSearch leaves search mode and clears the query.
+func (m *Model) exitSearch() {
+	m.state = StateBrowsing
+	m.search.Blur()
+	m.search.Reset()
+	m.status = ""
+}
+
+// followFirstMatch moves the cursor to the first match for the current query so
+// that typing in search mode selects the first matching entry immediately. It
+// leaves the selection unchanged when nothing matches.
+func (m *Model) followFirstMatch() {
+	if m.listing == nil {
+		return
+	}
+	matches := fsentry.Matches(m.listing.Entries, m.search.Value())
+	if len(matches) == 0 {
+		return
+	}
+	m.setCursor(matches[0] - 1)
+}
+
 func (m Model) searchInputWidth() int {
 	// Reserve room for the "Search: " prefix and the match/help text shown on
 	// the right side of the footer.
@@ -301,19 +323,6 @@ func (m Model) searchInputWidth() int {
 		w = 12
 	}
 	return w
-}
-
-func (m *Model) jumpFirstMatch() {
-	if m.listing == nil {
-		return
-	}
-	matches := fsentry.Matches(m.listing.Entries, m.search.Value())
-	if len(matches) == 0 {
-		m.status = "no matches"
-		return
-	}
-	m.setCursor(matches[0] - 1)
-	m.status = ""
 }
 
 func (m *Model) jumpNextMatch(direction int) {
