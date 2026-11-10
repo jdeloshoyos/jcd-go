@@ -1,0 +1,24 @@
+/demo/project
+2 directories, 3 files; 2.5 KB used.            [F2]=Toggle sort (Name Asc)  4/5
+d-------- 2021/01/02 15:04:05 docs
+d-------- 2021/01/02 15:04:05 src
+-l------- 2021/01/02 15:04:05 latest
+-----a--- 2021/01/02 15:04:05 main.go (512 bytes)
+-----a--- 2021/01/02 15:04:05 README.md (2.0 KB)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[↑↓]=Move [Enter]=Open [Bksp]=Up [/]=Search [F1]=Help [ESC]=Quit

@@ -26,8 +26,9 @@ parsing, and redraw.
 cmd/jcd/              command entry point: arguments, run loop, output protocol
 internal/cli/         start-directory resolution, terminal size, exit codes
 internal/fsentry/     portable model + pure logic (no TUI, no OS-specific code)
-internal/tui/         Bubble Tea model, update, view, styles
+internal/tui/         Bubble Tea model, update, view, styles, help
 internal/platform/    the only package with build-tagged OS-specific code
+internal/version/     semantic version, single source of truth
 internal/integration/ end-to-end tests for the shell wrapper contract
 scripts/              shell wrappers (PowerShell first)
 specs/                living specifications

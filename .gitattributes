@@ -1,0 +1,2 @@
+# Keep golden snapshots byte-stable across platforms.
+*.golden text eol=lf

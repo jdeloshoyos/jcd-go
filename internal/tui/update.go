@@ -9,14 +9,24 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.width = msg.Width
 		m.height = msg.Height
 		m.search.SetWidth(m.searchInputWidth())
+		if m.state == StateHelp {
+			m.help.SetWidth(m.helpViewportWidth())
+			m.help.SetHeight(m.helpViewportHeight())
+		}
 		m.ensureVisible()
 		return m, nil
 
 	case tea.KeyPressMsg:
-		if m.state == StateSearching {
+		switch m.state {
+		case StateSearching:
 			return m.updateSearching(msg)
+		case StateHelp:
+			return m.updateHelp(msg)
+		case StateDriveSelect:
+			return m.updateDriveSelect(msg)
+		default:
+			return m.updateBrowsing(msg)
 		}
-		return m.updateBrowsing(msg)
 
 	case tea.PasteMsg:
 		if m.state == StateSearching {
@@ -54,10 +64,42 @@ func (m Model) updateBrowsing(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 		m.enter()
 	case "backspace":
 		m.goUp()
+	case "f1", "?":
+		m.startHelp(StateBrowsing)
 	case "f2":
 		m.cycleSort()
 	case "/":
 		m.startSearch()
+	}
+	return m, nil
+}
+
+func (m Model) updateDriveSelect(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
+	if key := msg.String(); key != "ctrl+c" {
+		m.status = ""
+	}
+
+	switch msg.String() {
+	case "ctrl+c", "esc":
+		return m.quit()
+	case "up":
+		m.move(-1)
+	case "down":
+		m.move(1)
+	case "pgup":
+		m.move(-m.visibleRows())
+	case "pgdown":
+		m.move(m.visibleRows())
+	case "home":
+		m.setCursor(0)
+	case "end":
+		if m.listing != nil {
+			m.setCursor(len(m.listing.Entries) - 1)
+		}
+	case "enter":
+		m.openSelected()
+	case "f1", "?":
+		m.startHelp(StateDriveSelect)
 	}
 	return m, nil
 }
@@ -86,6 +128,20 @@ func (m Model) updateSearching(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 		m.search, cmd = m.search.Update(msg)
 		return m, cmd
 	}
+}
+
+func (m Model) updateHelp(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
+	switch msg.String() {
+	case "ctrl+c":
+		return m.quit()
+	case "esc", "f1", "?":
+		m.closeHelp()
+		return m, nil
+	}
+
+	var cmd tea.Cmd
+	m.help, cmd = m.help.Update(msg)
+	return m, cmd
 }
 
 func (m Model) quit() (tea.Model, tea.Cmd) {

@@ -53,7 +53,7 @@ Esc in `searching` returns to `browsing`; Esc in `browsing` quits. F1 toggles
 | ------------ | ------ |
 | `↑` / `↓`    | Scroll one line. |
 | `PgUp`/`PgDn`| Scroll one page. |
-| `Esc` / `F1` | Close help. |
+| `Esc` / `F1` / `?` | Close help. |
 
 ### 2.4 Drive selection (Windows)
 
@@ -61,6 +61,7 @@ Esc in `searching` returns to `browsing`; Esc in `browsing` quits. F1 toggles
 | ----- | ------ |
 | `↑`/`↓`| Move selection. |
 | `Enter`| Navigate to the selected drive root. |
+| `F1` / `?` | Toggle help; closing it returns here. |
 | `Esc`  | Quit and report the last browsed directory. |
 
 ## 3. Search semantics

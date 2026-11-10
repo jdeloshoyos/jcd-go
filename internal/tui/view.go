@@ -11,7 +11,9 @@ import (
 
 const dateLayout = "2006/01/02 15:04:05"
 
-const footerKeys = "[↑↓]=Move [Enter]=Open [Bksp]=Up [/]=Search [F2]=Sort [ESC]=Quit"
+const footerKeys = "[↑↓]=Move [Enter]=Open [Bksp]=Up [/]=Search [F1]=Help [ESC]=Quit"
+
+const footerDriveKeys = "[↑↓]=Select [Enter]=Open [F1]=Help [ESC]=Quit"
 
 // View implements tea.Model.
 func (m Model) View() tea.View {
@@ -28,7 +30,13 @@ func (m Model) render() string {
 			m.width, m.height, MinWidth, MinHeight,
 		)
 	}
+	if m.state == StateHelp {
+		return m.renderHelp()
+	}
+	return m.renderBrowser()
+}
 
+func (m Model) renderBrowser() string {
 	lines := make([]string, 0, m.height)
 	lines = append(lines, m.renderPath())
 	lines = append(lines, m.renderInfo())
@@ -48,10 +56,30 @@ func (m Model) render() string {
 }
 
 func (m Model) renderPath() string {
-	return styleHeaderPath.Width(m.width).Render(truncatePath(m.dir, m.width))
+	label := m.dir
+	if m.state == StateDriveSelect {
+		label = "System drives"
+	}
+	return styleHeaderPath.Width(m.width).Render(truncatePath(label, m.width))
 }
 
 func (m Model) renderInfo() string {
+	if m.state == StateDriveSelect {
+		count := 0
+		if m.listing != nil {
+			count = len(m.listing.Entries)
+		}
+		pos := 0
+		if count > 0 {
+			pos = m.cursor + 1
+		}
+		return styleHeaderInfo.Render(twoColumn(
+			fmt.Sprintf("%d drives", count),
+			fmt.Sprintf("%d/%d", pos, count),
+			m.width,
+		))
+	}
+
 	dirs, files, total, count := 0, 0, int64(0), 0
 	if m.listing != nil {
 		dirs = m.listing.NumDirs
@@ -128,7 +156,12 @@ func (m Model) renderFooter() string {
 	if m.status != "" {
 		return styleStatus.Width(m.width).Render(truncate(m.status, m.width, "…"))
 	}
-	return styleFooter.Width(m.width).Render(truncate(footerKeys, m.width, "…"))
+
+	keys := footerKeys
+	if m.state == StateDriveSelect {
+		keys = footerDriveKeys
+	}
+	return styleFooter.Width(m.width).Render(truncate(keys, m.width, "…"))
 }
 
 func (m Model) renderSearchFooter() string {
@@ -138,6 +171,13 @@ func (m Model) renderSearchFooter() string {
 	}
 
 	left := "Search: " + m.search.View()
-	right := fmt.Sprintf("%d matches  [Enter]=Jump [Tab]=Next [Esc]=Cancel", count)
+	right := fmt.Sprintf("%s  [Enter]=Jump [Tab]=Next [Esc]=Cancel", matchCountLabel(count))
 	return styleFooter.Width(m.width).Render(twoColumn(left, right, m.width))
+}
+
+func matchCountLabel(n int) string {
+	if n == 1 {
+		return "1 match"
+	}
+	return fmt.Sprintf("%d matches", n)
 }

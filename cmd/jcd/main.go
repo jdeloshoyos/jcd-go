@@ -11,11 +11,8 @@ import (
 
 	"jcd-go/internal/cli"
 	"jcd-go/internal/tui"
+	"jcd-go/internal/version"
 )
-
-// version is the semantic version of the application. It stays at the 0.1.0
-// placeholder until the first release candidate.
-const version = "0.1.0"
 
 func main() {
 	os.Exit(run(os.Args[1:]))
@@ -25,7 +22,7 @@ func run(args []string) int {
 	if len(args) > 0 {
 		switch args[0] {
 		case "--version", "-v":
-			fmt.Printf("jcd %s\n", version)
+			fmt.Printf("jcd %s\n", version.Version)
 			return cli.ExitOK
 		case "--help", "-h":
 			usage(os.Stdout)
@@ -96,5 +93,5 @@ Usage:
 Navigate with the arrow keys, Enter, and Backspace. Press / to search and
 Esc to quit. On exit, jcd prints the final directory to stdout so a shell
 wrapper (for example scripts/jcd.ps1) can change into it.
-`, version)
+`, version.Version)
 }

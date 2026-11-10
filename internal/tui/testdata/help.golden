@@ -1,0 +1,24 @@
+╭──────────────────────────────────────────────────────────────────────────────╮
+│ JCD Help — 0.1.0                                                             │
+│ by Jaime de los Hoyos M.                                                     │
+│                                                                              │
+│ Commands:                                                                    │
+│   Up / Down / PgUp / PgDn   Navigate the listing                             │
+│   Home / End                First / last entry                               │
+│   Enter                     Open a directory or file                         │
+│   Backspace                 Go up one level                                  │
+│                             (at a drive root: show the drive list)           │
+│   Esc                       Quit and report the current directory            │
+│   F1 or ?                   Toggle this help                                 │
+│   F2                        Cycle the sort mode                              │
+│   /                         Start a search                                   │
+│                                                                              │
+│ Search:                                                                      │
+│   Matching is case-insensitive and matches anywhere in the entry name.       │
+│     Enter       Jump to the first match                                      │
+│     Tab         Next match (wraps)                                           │
+│     Shift+Tab   Previous match                                               │
+│     Esc         Cancel the search                                            │
+│                                                                              │
+│ [Up/Down/PgUp/PgDn]=Scroll  [F1]/[Esc]=Close                                 │
+╰──────────────────────────────────────────────────────────────────────────────╯

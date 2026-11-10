@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/x/ansi"
 
 	"jcd-go/internal/fsentry"
@@ -349,5 +350,144 @@ func TestRenderTooSmall(t *testing.T) {
 
 	if out := ansi.Strip(m.render()); !strings.Contains(out, "Terminal too small") {
 		t.Errorf("render = %q, want a 'Terminal too small' message", out)
+	}
+}
+
+func TestHelpToggle(t *testing.T) {
+	m, _ := newTestModel(t)
+
+	m = press(t, m, key(tea.KeyF1))
+	if m.State() != StateHelp {
+		t.Fatalf("after F1: state = %v, want help", m.State())
+	}
+
+	m = press(t, m, key(tea.KeyEscape))
+	if m.State() != StateBrowsing {
+		t.Errorf("after Esc: state = %v, want browsing", m.State())
+	}
+
+	m = press(t, m, runeKey('?'))
+	if m.State() != StateHelp {
+		t.Errorf("after ?: state = %v, want help", m.State())
+	}
+
+	m = press(t, m, runeKey('?'))
+	if m.State() != StateBrowsing {
+		t.Errorf("after second ?: state = %v, want browsing", m.State())
+	}
+}
+
+func TestHelpScrolls(t *testing.T) {
+	m, _ := newTestModel(t)
+	next, _ := m.Update(tea.WindowSizeMsg{Width: 80, Height: 24})
+	m = next.(Model)
+
+	m = press(t, m, key(tea.KeyF1))
+	before := m.help.View()
+
+	m = press(t, m, key(tea.KeyPgDown))
+	after := m.help.View()
+
+	if before == after {
+		t.Error("help did not scroll after PgDn")
+	}
+}
+
+func TestHelpFromDriveSelectReturns(t *testing.T) {
+	m, _ := newTestModel(t)
+	m.state = StateDriveSelect
+
+	m = press(t, m, key(tea.KeyF1))
+	if m.State() != StateHelp {
+		t.Fatalf("state = %v, want help", m.State())
+	}
+
+	m = press(t, m, key(tea.KeyEscape))
+	if m.State() != StateDriveSelect {
+		t.Errorf("state = %v, want drive-select", m.State())
+	}
+}
+
+func TestHelpViewFitsScreen(t *testing.T) {
+	m, _ := newTestModel(t)
+	next, _ := m.Update(tea.WindowSizeMsg{Width: 100, Height: 30})
+	m = next.(Model)
+
+	m = press(t, m, key(tea.KeyF1))
+	out := m.renderHelp()
+
+	if got := lipgloss.Height(out); got != 30 {
+		t.Errorf("help height = %d, want 30", got)
+	}
+	for i, line := range strings.Split(out, "\n") {
+		if w := lipgloss.Width(line); w != 100 {
+			t.Errorf("help line %d width = %d, want 100", i, w)
+		}
+	}
+}
+
+func TestBackspaceAtRootOpensDriveSelect(t *testing.T) {
+	m, _ := newTestModel(t)
+
+	vol := filepath.VolumeName(t.TempDir())
+	m.dir = vol + string(filepath.Separator)
+
+	m = press(t, m, key(tea.KeyBackspace))
+	if m.State() != StateDriveSelect {
+		t.Fatalf("state = %v, want drive-select", m.State())
+	}
+	if m.Listing() == nil || len(m.Listing().Entries) == 0 {
+		t.Error("drive list is empty")
+	}
+}
+
+func TestDriveSelectEnterNavigates(t *testing.T) {
+	m, dir := newTestModel(t)
+
+	m.state = StateDriveSelect
+	m.listing = &fsentry.Listing{
+		Entries:  []fsentry.Entry{{Name: "X:", Path: dir, Kind: fsentry.KindDrive}},
+		NumDirs:  1,
+		SortMode: fsentry.SortNameAsc,
+	}
+	m.cursor = 0
+
+	m = press(t, m, key(tea.KeyEnter))
+
+	if m.State() != StateBrowsing {
+		t.Errorf("state = %v, want browsing", m.State())
+	}
+	if m.Dir() != dir {
+		t.Errorf("Dir() = %q, want %q", m.Dir(), dir)
+	}
+}
+
+func TestDriveSelectEscQuits(t *testing.T) {
+	m, dir := newTestModel(t)
+	m.state = StateDriveSelect
+
+	next, cmd := m.Update(key(tea.KeyEscape))
+	m = next.(Model)
+
+	if !m.Quitting() || m.ChosenDir() != dir {
+		t.Errorf("drive-select Esc: quitting=%v chosen=%q", m.Quitting(), m.ChosenDir())
+	}
+	if cmd == nil {
+		t.Error("expected a quit command")
+	}
+}
+
+func TestSearchShiftTab(t *testing.T) {
+	m, _ := newTestModel(t)
+
+	m = press(t, m, runeKey('/'), runeKey('a'))
+	m = press(t, m, key(tea.KeyEnter))
+	if m.Cursor() != 0 {
+		t.Fatalf("first match: cursor = %d, want 0", m.Cursor())
+	}
+
+	m = press(t, m, tea.KeyPressMsg{Code: tea.KeyTab, Mod: tea.ModShift})
+	if m.Cursor() != 2 {
+		t.Errorf("after shift+tab: cursor = %d, want 2 (wrapped)", m.Cursor())
 	}
 }

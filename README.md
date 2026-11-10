@@ -7,9 +7,10 @@ filesystem with the keyboard, and — on exit — reports the final directory ba
 to a thin shell wrapper so the wrapper can change the shell's working
 directory.
 
-> **Status:** early development (`0.1.0`). The interactive TUI MVP is
-> implemented: browsing, navigation, sort cycling, search, file opening, and
-> the PowerShell `cd` integration. Help and drive selection are next.
+> **Status:** early development (`0.1.0`). The interactive TUI is implemented:
+> browsing, navigation, sort cycling, search, file opening, a scrollable help
+> screen, drive selection, and the PowerShell `cd` integration. Cross-platform
+> support and polish are next.
 
 ## Requirements
 
@@ -61,11 +62,12 @@ invokes; it defaults to `jcd`.
 | PgUp / PgDn | Move one page |
 | Home / End | First / last entry |
 | Enter | Enter a directory or open a file |
-| Backspace | Go to the parent directory |
+| Backspace | Go to the parent directory (drive list at a drive root) |
+| F1 / ? | Toggle the help screen |
 | F2 | Cycle sort mode (Name/Date/Size × Asc/Desc) |
 | `/` | Enter search mode |
 | Enter (search) | Jump to the first match |
-| Tab (search) | Next match |
+| Tab / Shift+Tab (search) | Next / previous match |
 | Esc (search) | Cancel search |
 | Esc | Quit and report the current directory |
 

@@ -76,9 +76,9 @@ value on Unix.
 - [x] Explicit search mode with Tab cycling
 - [x] File opening with the default handler
 - [x] PowerShell wrapper end-to-end
-- [ ] Help screen (later milestone)
-- [ ] Drive-selection screen (later milestone)
-- [ ] Full key set including help and drives (later milestone)
+- [x] Scrollable help screen (F1 or `?`)
+- [x] Drive-selection screen (Backspace at a drive root)
+- [x] Full key set including help and drives
 
 ## 5. Out of scope for parity
 

@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"charm.land/bubbles/v2/textinput"
+	"charm.land/bubbles/v2/viewport"
 	tea "charm.land/bubbletea/v2"
 
 	"jcd-go/internal/fsentry"
@@ -31,6 +32,10 @@ const (
 	StateBrowsing State = iota
 	// StateSearching is the explicit search-input mode.
 	StateSearching
+	// StateHelp is the scrollable help screen.
+	StateHelp
+	// StateDriveSelect is the Windows-style drive list.
+	StateDriveSelect
 )
 
 // Model is the Bubble Tea model for the navigator.
@@ -42,6 +47,9 @@ type Model struct {
 	sortMode fsentry.SortMode
 	state    State
 	search   textinput.Model
+	help     viewport.Model
+
+	helpReturn State
 
 	width  int
 	height int
@@ -62,6 +70,7 @@ func New(dir string) (Model, error) {
 		width:    defaultWidth,
 		height:   defaultHeight,
 		search:   newSearchInput(),
+		help:     viewport.New(),
 		openFile: platform.OpenFile,
 	}
 	if err := m.loadDir(dir); err != nil {
@@ -191,6 +200,19 @@ func (m *Model) enter() {
 	}
 }
 
+// openSelected opens the highlighted entry in the drive list.
+func (m *Model) openSelected() {
+	if m.listing == nil || len(m.listing.Entries) == 0 {
+		return
+	}
+	e := m.listing.Entries[m.cursor]
+	if err := m.loadDir(e.Path); err != nil {
+		m.status = err.Error()
+		return
+	}
+	m.state = StateBrowsing
+}
+
 func (m *Model) openEntry(e fsentry.Entry) {
 	if err := m.openFile(e.Path); err != nil {
 		m.status = "open: " + err.Error()
@@ -200,12 +222,31 @@ func (m *Model) openEntry(e fsentry.Entry) {
 func (m *Model) goUp() {
 	parent := filepath.Dir(m.dir)
 	if parent == m.dir {
-		m.status = "already at the root"
+		m.enterDriveSelect()
 		return
 	}
 	if err := m.loadDir(parent); err != nil {
 		m.status = err.Error()
 	}
+}
+
+func (m *Model) enterDriveSelect() {
+	drives, err := platform.Drives()
+	if err != nil {
+		m.status = err.Error()
+		return
+	}
+	listing := &fsentry.Listing{
+		Entries:  drives,
+		SortMode: fsentry.SortNameAsc,
+		NumDirs:  len(drives),
+	}
+	fsentry.Sort(listing.Entries, listing.SortMode)
+	m.listing = listing
+	m.cursor = 0
+	m.offset = 0
+	m.state = StateDriveSelect
+	m.status = ""
 }
 
 func (m *Model) cycleSort() {
@@ -227,7 +268,9 @@ func (m *Model) startSearch() {
 }
 
 func (m Model) searchInputWidth() int {
-	w := m.width - len("Search: ") - 44
+	// Reserve room for the "Search: " prefix and the match/help text shown on
+	// the right side of the footer.
+	w := m.width - len("Search: ") - 50
 	if w < 12 {
 		w = 12
 	}
@@ -275,4 +318,33 @@ func (m *Model) jumpNextMatch(direction int) {
 	}
 	m.setCursor(matches[next] - 1)
 	m.status = ""
+}
+
+func (m *Model) startHelp(returnTo State) {
+	m.helpReturn = returnTo
+	m.state = StateHelp
+	m.help.SetContent(helpText())
+	m.help.SetWidth(m.helpViewportWidth())
+	m.help.SetHeight(m.helpViewportHeight())
+	m.help.GotoTop()
+}
+
+func (m *Model) closeHelp() {
+	m.state = m.helpReturn
+}
+
+func (m Model) helpViewportWidth() int {
+	w := m.width - 4 // border (2) + horizontal padding (2)
+	if w < 10 {
+		w = 10
+	}
+	return w
+}
+
+func (m Model) helpViewportHeight() int {
+	h := m.height - 4 // border (2) + title and footer (2)
+	if h < 1 {
+		h = 1
+	}
+	return h
 }
