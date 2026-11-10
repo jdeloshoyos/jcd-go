@@ -16,7 +16,7 @@ $global:LASTEXITCODE = 0
 try {
     $result = & $binary @args
 } catch {
-    Write-Error "jcd: failed to run '$binary': $_"
+    [Console]::Error.WriteLine("jcd: failed to run '$binary': $_")
     return
 }
 
@@ -36,5 +36,5 @@ if ([string]::IsNullOrWhiteSpace($target)) {
 if (Test-Path -LiteralPath $target -PathType Container) {
     Set-Location -LiteralPath $target
 } else {
-    Write-Error "jcd: '$target' is not a valid directory"
+    [Console]::Error.WriteLine("jcd: '$target' is not a valid directory")
 }

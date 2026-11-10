@@ -18,7 +18,9 @@ Requirement IDs are stable references used by the test suite and by
 | `FR-START-3`  | An argument that is not an existing directory produces a clear error on stderr and a non-zero exit code. |
 | `FR-START-4`  | Trailing path separators are tolerated. |
 | `FR-START-5`  | The app requires a terminal of at least 80 columns × 20 rows; otherwise it exits with a clear error. |
-| `FR-START-6`  | The app supports `--version` / `-v` and prints its semantic version. |
+| `FR-START-6`  | The app supports `--version` / `-v` and `--help` / `-h`. |
+| `FR-START-7`  | A leading `--` ends option parsing, so directories whose names begin with `-` can be passed. Unknown options are usage errors. |
+| `FR-START-8`  | Paths containing spaces, Unicode, and shell-special characters are supported. |
 
 ### 1.2 Listing
 
@@ -108,8 +110,9 @@ Requirement IDs are stable references used by the test suite and by
 | `NFR-4`       | Listings of directories with thousands of entries remain responsive. |
 | `NFR-5`       | All keys behave consistently on Windows terminals (including Windows Terminal and conhost). |
 | `NFR-6`       | The build and test suite run on Windows, Linux, and macOS in CI. |
-| `NFR-7`       | Behaviour is covered by unit tests and by TUI-level regression tests. |
+| `NFR-7`       | Behaviour is covered by unit tests, TUI-level regression tests, and golden snapshots. |
 | `NFR-8`       | Specs are updated whenever behaviour changes. |
+| `NFR-9`       | Benchmarks cover sorting, searching, and scanning large listings. |
 
 ## 3. Acceptance criteria (initial milestone set)
 

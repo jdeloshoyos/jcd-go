@@ -113,13 +113,20 @@ because that is not portable (or possible) for a child process.
 ## 7. Testing strategy
 
 - **Unit tests** for `fsentry`: table-driven coverage of scan (empty, hidden,
-  symlinks, counts, totals), all six sort modes, search matching/nth-match,
-  size formatting, and attribute masks.
-- **TUI tests** with `teatest` and direct model updates: drive key messages and
-  assert state and cursor changes.
-- **Golden tests** for `View()` using Lip Gloss snapshot rendering.
-- **Integration test** for the PowerShell wrapper in a temporary directory.
-- **CI matrix** on `windows-latest`, `ubuntu-latest`, and `macos-latest`.
+  symlinks, Unicode, special characters, counts, totals), all six sort modes,
+  search matching/nth-match, size formatting, and attribute masks.
+- **Platform tests** for attribute mapping: raw Win32 bitmasks plus real
+  read-only/hidden/symlink files on Windows; dotfiles, permissions, and
+  symlinks on Unix.
+- **TUI tests** driven through `Update`: every key, state transitions, error
+  paths, and a Program-level smoke test of the real Bubble Tea loop.
+- **Golden tests** for `View()` covering browsing, search, help, drives, and
+  small terminals.
+- **Integration tests** for the PowerShell wrapper: success, failure, and
+  special/Unicode paths.
+- **Benchmarks** for sorting, searching, and scanning large listings.
+- **CI matrix** on `windows-latest`, `ubuntu-latest`, and `macos-latest`, with
+  a formatting gate and a race-detector run on Linux.
 
 ## 8. Build and release
 

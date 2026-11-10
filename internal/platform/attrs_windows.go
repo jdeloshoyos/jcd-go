@@ -22,6 +22,21 @@ const (
 	fileAttributeEncrypted  = 0x00004000
 )
 
+// attrsFromWin32 maps a raw Win32 attribute bitmask to the portable model.
+func attrsFromWin32(attr uint32) fsentry.Attributes {
+	return fsentry.Attributes{
+		Directory:  attr&fileAttributeDirectory != 0,
+		Symlink:    attr&fileAttributeReparse != 0,
+		ReadOnly:   attr&fileAttributeReadOnly != 0,
+		Hidden:     attr&fileAttributeHidden != 0,
+		System:     attr&fileAttributeSystem != 0,
+		Archive:    attr&fileAttributeArchive != 0,
+		Compressed: attr&fileAttributeCompressed != 0,
+		NotIndexed: attr&fileAttributeNotIndexed != 0,
+		Encrypted:  attr&fileAttributeEncrypted != 0,
+	}
+}
+
 // Attrs extracts the portable attribute model from Windows file attributes.
 func Attrs(_ string, info os.FileInfo) fsentry.Attributes {
 	data, ok := info.Sys().(*syscall.Win32FileAttributeData)
@@ -32,17 +47,5 @@ func Attrs(_ string, info os.FileInfo) fsentry.Attributes {
 			Symlink:   info.Mode()&os.ModeSymlink != 0,
 		}
 	}
-
-	f := data.FileAttributes
-	return fsentry.Attributes{
-		Directory:  f&fileAttributeDirectory != 0,
-		Symlink:    f&fileAttributeReparse != 0,
-		ReadOnly:   f&fileAttributeReadOnly != 0,
-		Hidden:     f&fileAttributeHidden != 0,
-		System:     f&fileAttributeSystem != 0,
-		Archive:    f&fileAttributeArchive != 0,
-		Compressed: f&fileAttributeCompressed != 0,
-		NotIndexed: f&fileAttributeNotIndexed != 0,
-		Encrypted:  f&fileAttributeEncrypted != 0,
-	}
+	return attrsFromWin32(data.FileAttributes)
 }

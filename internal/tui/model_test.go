@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -489,5 +490,70 @@ func TestSearchShiftTab(t *testing.T) {
 	m = press(t, m, tea.KeyPressMsg{Code: tea.KeyTab, Mod: tea.ModShift})
 	if m.Cursor() != 2 {
 		t.Errorf("after shift+tab: cursor = %d, want 2 (wrapped)", m.Cursor())
+	}
+}
+
+func TestEnterMissingDirectoryShowsStatus(t *testing.T) {
+	m, dir := newTestModel(t)
+
+	if len(m.Listing().Entries) == 0 || m.Listing().Entries[0].Kind != fsentry.KindDir {
+		t.Fatal("test setup: first entry is not a directory")
+	}
+	m.listing.Entries[0].Path = filepath.Join(dir, "does-not-exist")
+
+	m = press(t, m, key(tea.KeyEnter))
+
+	if m.Dir() != dir {
+		t.Errorf("Dir() = %q, want %q (navigation should fail)", m.Dir(), dir)
+	}
+	if m.status == "" {
+		t.Error("expected a status message for an unreadable directory")
+	}
+}
+
+func TestOpenFileFailureShowsStatus(t *testing.T) {
+	m, _ := newTestModel(t)
+	m.openFile = func(string) error { return errors.New("boom") }
+
+	m = press(t, m, key(tea.KeyEnd)) // charlie.txt
+	m = press(t, m, key(tea.KeyEnter))
+
+	if !strings.Contains(m.status, "open:") {
+		t.Errorf("status = %q, want an open failure", m.status)
+	}
+}
+
+func TestBrokenSymlinkShowsStatus(t *testing.T) {
+	m, dir := newTestModel(t)
+	m.listing = &fsentry.Listing{
+		Entries: []fsentry.Entry{{
+			Name: "broken",
+			Path: filepath.Join(dir, "broken-link"),
+			Kind: fsentry.KindSymlink,
+		}},
+	}
+	m.cursor = 0
+	m.openFile = func(string) error { return errors.New("no target") }
+
+	m = press(t, m, key(tea.KeyEnter))
+
+	if !strings.Contains(m.status, "open:") {
+		t.Errorf("status = %q, want an open failure for the broken link", m.status)
+	}
+}
+
+func TestEnterOnEmptyDirectoryIsNoop(t *testing.T) {
+	m, dir := newTestModel(t)
+
+	m = press(t, m, key(tea.KeyEnter)) // alpha (empty)
+	alpha := filepath.Join(dir, "alpha")
+	if m.Dir() != alpha {
+		t.Fatalf("Dir() = %q, want %q", m.Dir(), alpha)
+	}
+
+	before := m.Dir()
+	m = press(t, m, key(tea.KeyEnter)) // nothing to open
+	if m.Dir() != before {
+		t.Errorf("Dir() = %q after Enter on empty directory, want %q", m.Dir(), before)
 	}
 }

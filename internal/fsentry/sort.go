@@ -53,19 +53,39 @@ func (m SortMode) Normalize() SortMode {
 	return m
 }
 
+// sortableEntry carries the case-folded name so each entry is folded once per
+// sort rather than once per comparison.
+type sortableEntry struct {
+	entry  Entry
+	folded string
+}
+
 // Sort orders entries in place according to mode. Directories and drives are
 // always placed before files; remaining ties are broken by name (ascending).
 func Sort(entries []Entry, mode SortMode) {
 	mode = mode.Normalize()
-	slices.SortStableFunc(entries, func(a, b Entry) int {
-		return compare(a, b, mode)
+	if len(entries) < 2 {
+		return
+	}
+
+	decorated := make([]sortableEntry, len(entries))
+	for i, e := range entries {
+		decorated[i] = sortableEntry{entry: e, folded: strings.ToLower(e.Name)}
+	}
+
+	slices.SortStableFunc(decorated, func(a, b sortableEntry) int {
+		return compareSorted(a, b, mode)
 	})
+
+	for i := range decorated {
+		entries[i] = decorated[i].entry
+	}
 }
 
-func compare(a, b Entry, mode SortMode) int {
+func compareSorted(a, b sortableEntry, mode SortMode) int {
 	// Directories (and drives) always come first.
-	if a.IsDirLike() != b.IsDirLike() {
-		if a.IsDirLike() {
+	if a.entry.IsDirLike() != b.entry.IsDirLike() {
+		if a.entry.IsDirLike() {
 			return -1
 		}
 		return 1
@@ -73,7 +93,7 @@ func compare(a, b Entry, mode SortMode) int {
 
 	switch mode {
 	case SortNameAsc, SortNameDesc:
-		c := strings.Compare(foldName(a.Name), foldName(b.Name))
+		c := strings.Compare(a.folded, b.folded)
 		if mode == SortNameDesc {
 			c = -c
 		}
@@ -81,7 +101,7 @@ func compare(a, b Entry, mode SortMode) int {
 			return c
 		}
 	case SortDateAsc, SortDateDesc:
-		c := a.ModTime.Compare(b.ModTime)
+		c := a.entry.ModTime.Compare(b.entry.ModTime)
 		if mode == SortDateDesc {
 			c = -c
 		}
@@ -89,7 +109,7 @@ func compare(a, b Entry, mode SortMode) int {
 			return c
 		}
 	case SortSizeAsc, SortSizeDesc:
-		c := cmp.Compare(a.Size, b.Size)
+		c := cmp.Compare(a.entry.Size, b.entry.Size)
 		if mode == SortSizeDesc {
 			c = -c
 		}
@@ -99,12 +119,8 @@ func compare(a, b Entry, mode SortMode) int {
 	}
 
 	// Name is the ascending tiebreaker for every mode.
-	if c := strings.Compare(foldName(a.Name), foldName(b.Name)); c != 0 {
+	if c := strings.Compare(a.folded, b.folded); c != 0 {
 		return c
 	}
-	return strings.Compare(a.Name, b.Name)
-}
-
-func foldName(s string) string {
-	return strings.ToLower(s)
+	return strings.Compare(a.entry.Name, b.entry.Name)
 }

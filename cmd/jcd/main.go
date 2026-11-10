@@ -1,10 +1,8 @@
-// Command jcd is a terminal directory navigator.
 package main
 
 import (
 	"errors"
 	"fmt"
-	"io"
 	"os"
 
 	tea "charm.land/bubbletea/v2"
@@ -19,24 +17,20 @@ func main() {
 }
 
 func run(args []string) int {
-	if len(args) > 0 {
-		switch args[0] {
-		case "--version", "-v":
-			fmt.Printf("jcd %s\n", version.Version)
-			return cli.ExitOK
-		case "--help", "-h":
-			usage(os.Stdout)
-			return cli.ExitOK
-		}
-	}
-	if len(args) > 1 {
-		usage(os.Stderr)
+	opts, err := cli.ParseArgs(args)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "jcd: %v\n", err)
+		cli.Usage(os.Stderr, version.Version)
 		return cli.ExitUsage
 	}
 
-	var arg string
-	if len(args) == 1 {
-		arg = args[0]
+	switch opts.Action {
+	case cli.ActionVersion:
+		fmt.Printf("jcd %s\n", version.Version)
+		return cli.ExitOK
+	case cli.ActionHelp:
+		cli.Usage(os.Stdout, version.Version)
+		return cli.ExitOK
 	}
 
 	cwd, err := os.Getwd()
@@ -45,7 +39,7 @@ func run(args []string) int {
 		return cli.ExitError
 	}
 
-	dir, err := cli.ResolveStartDir(arg, cwd)
+	dir, err := cli.ResolveStartDir(opts.Dir, cwd)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "jcd: %v\n", err)
 		return cli.ExitUsage
@@ -82,16 +76,4 @@ func run(args []string) int {
 
 	fmt.Println(m.ChosenDir())
 	return cli.ExitOK
-}
-
-func usage(w io.Writer) {
-	fmt.Fprintf(w, `jcd %s - terminal directory navigator
-
-Usage:
-  jcd [directory]
-
-Navigate with the arrow keys, Enter, and Backspace. Press / to search and
-Esc to quit. On exit, jcd prints the final directory to stdout so a shell
-wrapper (for example scripts/jcd.ps1) can change into it.
-`, version.Version)
 }

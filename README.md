@@ -48,6 +48,9 @@ Then:
 ```powershell
 jcd                      # browse the current directory
 jcd C:\some\directory    # start somewhere else
+jcd --help               # usage
+jcd --version            # version
+jcd -- -dashdir          # a directory whose name begins with '-'
 ```
 
 The wrapper must run in your current PowerShell session (via the function or

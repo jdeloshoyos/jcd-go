@@ -47,7 +47,9 @@ discoverable and removes the hidden timer.
 Legacy: `1.2*OK*C:\some\dir`, parsed by splitting on `*`. A path containing `*`
 (valid on POSIX systems) would break parsing. The port prints exactly the
 resolved path on stdout and signals success with exit code `0`; errors go to
-stderr.
+stderr. The PowerShell wrapper applies the path with `-LiteralPath`, and the
+protocol is covered by tests for spaces, Unicode, and shell metacharacters
+(`&`, `(`, `)`, `'`, `;`, `,`, `=`), as well as `*` names on POSIX.
 
 ### 3.3 Listing rendering
 The legacy app painted directly into the console buffer with `locate`/`color`.
@@ -79,6 +81,8 @@ value on Unix.
 - [x] Scrollable help screen (F1 or `?`)
 - [x] Drive-selection screen (Backspace at a drive root)
 - [x] Full key set including help and drives
+- [x] Attribute mapping parity tests (Win32 bits and real files)
+- [x] Edge-case path tests (spaces, Unicode, shell metacharacters, `*` on POSIX)
 
 ## 5. Out of scope for parity
 

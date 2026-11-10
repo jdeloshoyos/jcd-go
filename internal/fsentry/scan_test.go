@@ -3,6 +3,7 @@ package fsentry
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 	"testing"
@@ -216,5 +217,56 @@ func TestScanDirHiddenAndSystemEntriesListed(t *testing.T) {
 	}
 	if findEntry(listing.Entries, "visible.txt") == nil {
 		t.Error("visible file was not listed")
+	}
+}
+
+func TestScanDirUnicodeName(t *testing.T) {
+	dir := t.TempDir()
+	name := "café-Δ-日本.txt"
+	mustWrite(t, filepath.Join(dir, name), []byte("hello"))
+
+	listing, err := ScanDir(dir, nil, SortNameAsc)
+	if err != nil {
+		t.Fatalf("ScanDir: %v", err)
+	}
+
+	entry := findEntry(listing.Entries, name)
+	if entry == nil {
+		t.Fatalf("unicode entry %q was not listed", name)
+	}
+	if entry.Size != 5 {
+		t.Errorf("size = %d, want 5", entry.Size)
+	}
+}
+
+func TestScanDirStarName(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("'*' is not a valid filename character on Windows")
+	}
+
+	dir := t.TempDir()
+	name := "star*name.txt"
+	mustWrite(t, filepath.Join(dir, name), []byte("x"))
+
+	listing, err := ScanDir(dir, nil, SortNameAsc)
+	if err != nil {
+		t.Fatalf("ScanDir: %v", err)
+	}
+	if findEntry(listing.Entries, name) == nil {
+		t.Errorf("entry %q was not listed", name)
+	}
+}
+
+func TestScanDirSpecialCharacters(t *testing.T) {
+	dir := t.TempDir()
+	name := "amp & (paren) 'quote';,=.txt"
+	mustWrite(t, filepath.Join(dir, name), []byte("x"))
+
+	listing, err := ScanDir(dir, nil, SortNameAsc)
+	if err != nil {
+		t.Fatalf("ScanDir: %v", err)
+	}
+	if findEntry(listing.Entries, name) == nil {
+		t.Errorf("entry %q was not listed", name)
 	}
 }

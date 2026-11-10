@@ -51,6 +51,38 @@ func writeMock(t *testing.T, dir, body string) string {
 	return mock
 }
 
+// runWrapper runs the wrapper in a fresh PowerShell session. start is the
+// location before the wrapper runs (empty to leave it alone), target is the
+// path passed to the wrapper, and expect is the location the wrapper must end
+// in. The comparison is done inside PowerShell to avoid output-encoding issues
+// with non-ASCII paths.
+func runWrapper(t *testing.T, shell, wrapper, mock, start, target, expect string) {
+	t.Helper()
+
+	const script = `& {
+    if ($env:JCD_START) { Set-Location -LiteralPath $env:JCD_START }
+    & $env:JCD_WRAPPER $env:JCD_TARGET
+    if ((Get-Location).Path -eq $env:JCD_EXPECT) { 'LOCATION-OK' } else { 'LOCATION-BAD' }
+}`
+
+	cmd := exec.Command(shell, "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-Command", script)
+	cmd.Env = append(os.Environ(),
+		"JCD_BIN="+mock,
+		"JCD_WRAPPER="+wrapper,
+		"JCD_START="+start,
+		"JCD_TARGET="+target,
+		"JCD_EXPECT="+expect,
+	)
+
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("powershell: %v\n%s", err, out)
+	}
+	if !strings.Contains(string(out), "LOCATION-OK") {
+		t.Fatalf("wrapper ended in the wrong directory; output:\n%s", out)
+	}
+}
+
 func TestPowerShellWrapperChangesDirectory(t *testing.T) {
 	shell := findPowerShell(t)
 	wrapper := wrapperPath(t)
@@ -60,24 +92,9 @@ func TestPowerShellWrapperChangesDirectory(t *testing.T) {
 	if err := os.Mkdir(target, 0o755); err != nil {
 		t.Fatal(err)
 	}
-
 	mock := writeMock(t, dir, "Write-Output $args[0]\n")
 
-	cmd := exec.Command(shell, "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
-		"-Command", `& { & $env:JCD_WRAPPER $env:JCD_TARGET; Write-Output "LOC=$(Get-Location)" }`)
-	cmd.Env = append(os.Environ(),
-		"JCD_BIN="+mock,
-		"JCD_WRAPPER="+wrapper,
-		"JCD_TARGET="+target,
-	)
-
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		t.Fatalf("powershell: %v\n%s", err, out)
-	}
-	if !containsFold(string(out), "LOC="+target) {
-		t.Fatalf("wrapper did not change directory; output:\n%s", out)
-	}
+	runWrapper(t, shell, wrapper, mock, "", target, target)
 }
 
 func TestPowerShellWrapperIgnoresFailure(t *testing.T) {
@@ -93,27 +110,50 @@ func TestPowerShellWrapperIgnoresFailure(t *testing.T) {
 		}
 	}
 
-	// The mock prints a path but reports failure; the wrapper must ignore it.
+	// The mock prints a target but reports failure; the wrapper must ignore it.
 	mock := writeMock(t, dir, "Write-Output $args[0]\nexit 1\n")
 
-	cmd := exec.Command(shell, "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
-		"-Command", `& { Set-Location $env:JCD_START; & $env:JCD_WRAPPER $env:JCD_TARGET; Write-Output "LOC=$(Get-Location)" }`)
-	cmd.Env = append(os.Environ(),
-		"JCD_BIN="+mock,
-		"JCD_WRAPPER="+wrapper,
-		"JCD_START="+start,
-		"JCD_TARGET="+target,
-	)
-
-	out, _ := cmd.CombinedOutput()
-	if containsFold(string(out), "LOC="+target) {
-		t.Fatalf("wrapper changed directory despite failure; output:\n%s", out)
-	}
-	if !containsFold(string(out), "LOC="+start) {
-		t.Fatalf("wrapper left the wrong directory; output:\n%s", out)
-	}
+	runWrapper(t, shell, wrapper, mock, start, target, start)
 }
 
-func containsFold(haystack, needle string) bool {
-	return strings.Contains(strings.ToLower(haystack), strings.ToLower(needle))
+func TestPowerShellWrapperRejectsInvalidTarget(t *testing.T) {
+	shell := findPowerShell(t)
+	wrapper := wrapperPath(t)
+
+	dir := t.TempDir()
+	start := filepath.Join(dir, "start")
+	if err := os.Mkdir(start, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	missing := filepath.Join(dir, "missing")
+
+	// The mock exits successfully but reports a path that does not exist; the
+	// wrapper must reject it and stay put.
+	mock := writeMock(t, dir, "Write-Output $args[0]\n")
+
+	runWrapper(t, shell, wrapper, mock, start, missing, start)
+}
+
+func TestPowerShellWrapperHandlesSpecialPaths(t *testing.T) {
+	shell := findPowerShell(t)
+	wrapper := wrapperPath(t)
+
+	names := []string{
+		"target with spaces",
+		"café-Δ-日本",
+		"amp & (paren) 'quote';,=",
+	}
+
+	for _, name := range names {
+		t.Run(name, func(t *testing.T) {
+			dir := t.TempDir()
+			target := filepath.Join(dir, name)
+			if err := os.Mkdir(target, 0o755); err != nil {
+				t.Fatalf("mkdir: %v", err)
+			}
+			mock := writeMock(t, dir, "Write-Output $args[0]\n")
+
+			runWrapper(t, shell, wrapper, mock, "", target, target)
+		})
+	}
 }

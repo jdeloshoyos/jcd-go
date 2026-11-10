@@ -198,6 +198,9 @@ executable it invokes, which also makes the wrapper easy to test.
 5. Verify the result is an existing directory; otherwise exit `2`.
 6. If the app started on `drive-select` and the user quits without choosing a
    drive, report the last browsed directory.
+7. A leading `--` ends option parsing, so a directory whose name begins with
+   `-` can be passed as `jcd -- -dirname`.
+8. Unknown options are usage errors (exit code `2`).
 
 ## 9. Terminal requirements
 
