@@ -1,0 +1,16 @@
+# Go build output
+/jcd
+/jcd.exe
+/dist/
+
+# Go test / coverage artifacts
+*.test
+*.out
+coverage.*
+
+# Editors and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
