@@ -1,6 +1,6 @@
 # Go build output
 /jcd
-/jcd.exe
+/*.exe
 /dist/
 
 # Go test / coverage artifacts
