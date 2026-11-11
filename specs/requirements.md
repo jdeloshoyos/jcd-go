@@ -1,7 +1,7 @@
 # JCD — Requirements
 
 - **Status:** Draft
-- **Version:** 1.0.0
+- **Version:** 1.1.0
 - **Last updated:** 2026-11-10
 
 Requirement IDs are stable references used by the test suite and by
@@ -57,7 +57,7 @@ Requirement IDs are stable references used by the test suite and by
 
 | ID           | Requirement |
 | ------------ | ----------- |
-| `FR-SRCH-1`  | `/` enters an explicit search-input mode. |
+| `FR-SRCH-1`  | F3 enters an explicit search-input mode; typing any visible, printable character not bound to another action also enters it, seeded with that character. |
 | `FR-SRCH-2`  | Matching is a case-insensitive substring match anywhere in the entry name. |
 | `FR-SRCH-3`  | Typing moves the selection to the first match; Tab cycles through matches, wrapping around. |
 | `FR-SRCH-4`  | Esc cancels search mode without changing the selection. |
@@ -98,10 +98,10 @@ Requirement IDs are stable references used by the test suite and by
 | ID           | Requirement |
 | ------------ | ----------- |
 | `FR-EXIT-1`  | Esc quits the app and restores the terminal. |
-| `FR-EXIT-2`  | On success the app prints exactly the resolved target path to stdout and exits `0`. |
+| `FR-EXIT-2`  | On success the app prints a banner line (`JCD Terminal Directory Navigator v<version>`) followed by the resolved target path to stdout and exits `0`. |
 | `FR-EXIT-3`  | On failure the app prints a diagnostic to stderr and exits non-zero. |
 | `FR-EXIT-4`  | The output contains no UI escape sequences or decorations. |
-| `FR-EXIT-5`  | A PowerShell wrapper applies the returned path with `Set-Location`. |
+| `FR-EXIT-5`  | A PowerShell wrapper prints the banner and a "Changing current directory to …" line, then applies the returned path with `Set-Location`. |
 
 ### 1.10 Configuration and mouse
 

@@ -19,7 +19,7 @@ Commands:
   Esc                       Quit and report the current directory
   F1 or ?                   Toggle this help
   F2                        Cycle the sort mode
-  /                         Start a search
+  F3                        Start a search (or start typing)
 
 Search:
   Matching is case-insensitive and matches anywhere in the entry name.

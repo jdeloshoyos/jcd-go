@@ -218,7 +218,7 @@ func TestChosenDirAfterNavigation(t *testing.T) {
 func TestSearchLiveFollowsFirstMatch(t *testing.T) {
 	m, _ := newTestModel(t)
 
-	m = press(t, m, runeKey('/'))
+	m = press(t, m, key(tea.KeyF3))
 	if m.State() != StateSearching {
 		t.Fatalf("state = %v, want searching", m.State())
 	}
@@ -241,6 +241,75 @@ func TestSearchLiveFollowsFirstMatch(t *testing.T) {
 	}
 }
 
+func TestTypeStartsSearchWithSeed(t *testing.T) {
+	m, _ := newTestModel(t)
+
+	// Typing in browsing mode enters search with that character as the query.
+	m = press(t, m, runeKey('c'))
+	if m.State() != StateSearching {
+		t.Fatalf("state = %v, want searching", m.State())
+	}
+	if got := m.search.Value(); got != "c" {
+		t.Errorf("query = %q, want %q", got, "c")
+	}
+	// "c" matches charlie.txt (index 2); the first match is selected.
+	if m.Cursor() != 2 {
+		t.Errorf("cursor = %d, want 2 (charlie.txt)", m.Cursor())
+	}
+
+	// Further typing extends the query as usual.
+	m = press(t, m, runeKey('h'), runeKey('a'), runeKey('r'))
+	if got := m.search.Value(); got != "char" {
+		t.Errorf("query = %q, want %q", got, "char")
+	}
+}
+
+func TestSlashStartsSearchSeeded(t *testing.T) {
+	m, _ := newTestModel(t)
+
+	m = press(t, m, runeKey('/'))
+	if m.State() != StateSearching {
+		t.Fatalf("state = %v, want searching", m.State())
+	}
+	if got := m.search.Value(); got != "/" {
+		t.Errorf("query = %q, want %q", got, "/")
+	}
+}
+
+func TestF3StartsEmptySearch(t *testing.T) {
+	m, _ := newTestModel(t)
+
+	m = press(t, m, key(tea.KeyF3))
+	if m.State() != StateSearching {
+		t.Fatalf("state = %v, want searching", m.State())
+	}
+	if m.search.Value() != "" {
+		t.Errorf("query = %q, want empty", m.search.Value())
+	}
+}
+
+func TestSpaceAndMappedKeysDoNotSearch(t *testing.T) {
+	m, _ := newTestModel(t)
+
+	// Space is visible but must not start a search.
+	m = press(t, m, runeKey(' '))
+	if m.State() != StateBrowsing {
+		t.Errorf("after space: state = %v, want browsing", m.State())
+	}
+
+	// A mapped function key keeps its action.
+	m = press(t, m, key(tea.KeyF2))
+	if m.State() != StateBrowsing {
+		t.Errorf("after F2: state = %v, want browsing", m.State())
+	}
+
+	// "?" still toggles help rather than starting a search.
+	m = press(t, m, runeKey('?'))
+	if m.State() != StateHelp {
+		t.Errorf("after ?: state = %v, want help", m.State())
+	}
+}
+
 func TestSearchEnterOpensFile(t *testing.T) {
 	m, dir := newTestModel(t)
 
@@ -250,7 +319,7 @@ func TestSearchEnterOpensFile(t *testing.T) {
 		return nil
 	}
 
-	m = press(t, m, runeKey('/'), runeKey('c'), runeKey('h'), runeKey('a'), runeKey('r'))
+	m = press(t, m, key(tea.KeyF3), runeKey('c'), runeKey('h'), runeKey('a'), runeKey('r'))
 	m = press(t, m, key(tea.KeyEnter))
 
 	if m.State() != StateBrowsing {
@@ -270,7 +339,7 @@ func TestSearchEnterOpensFile(t *testing.T) {
 func TestSearchEnterOpensDirectory(t *testing.T) {
 	m, dir := newTestModel(t)
 
-	m = press(t, m, runeKey('/'), runeKey('a'), runeKey('l'), runeKey('p'))
+	m = press(t, m, key(tea.KeyF3), runeKey('a'), runeKey('l'), runeKey('p'))
 	if m.Cursor() != 0 {
 		t.Fatalf("cursor = %d, want 0 (alpha)", m.Cursor())
 	}
@@ -289,7 +358,7 @@ func TestSearchTabCyclesMatches(t *testing.T) {
 	m, _ := newTestModel(t)
 
 	// "a" matches alpha, beta and charlie; typing selects the first.
-	m = press(t, m, runeKey('/'), runeKey('a'))
+	m = press(t, m, key(tea.KeyF3), runeKey('a'))
 	if m.Cursor() != 0 {
 		t.Fatalf("first match: cursor = %d, want 0", m.Cursor())
 	}
@@ -315,7 +384,7 @@ func TestSearchNoMatch(t *testing.T) {
 	before := m.Cursor()
 
 	// Typing a query with no matches leaves the selection unchanged.
-	m = press(t, m, runeKey('/'), runeKey('z'), runeKey('z'))
+	m = press(t, m, key(tea.KeyF3), runeKey('z'), runeKey('z'))
 	if m.Cursor() != before {
 		t.Errorf("cursor changed to %d on no match, want %d", m.Cursor(), before)
 	}
@@ -529,7 +598,7 @@ func TestDriveSelectEscQuits(t *testing.T) {
 func TestSearchShiftTab(t *testing.T) {
 	m, _ := newTestModel(t)
 
-	m = press(t, m, runeKey('/'), runeKey('a'))
+	m = press(t, m, key(tea.KeyF3), runeKey('a'))
 	if m.Cursor() != 0 {
 		t.Fatalf("first match: cursor = %d, want 0", m.Cursor())
 	}
@@ -547,7 +616,7 @@ func TestSearchHighlightsMatches(t *testing.T) {
 
 	// "a" matches alpha (selected by live-follow) plus the unselected beta and
 	// charlie rows, so both the selected and unselected styles must appear.
-	m = press(t, m, runeKey('/'), runeKey('a'))
+	m = press(t, m, key(tea.KeyF3), runeKey('a'))
 
 	out := m.render()
 	selectedMatch := m.theme.Match.Inherit(m.theme.Selected).Render("a")

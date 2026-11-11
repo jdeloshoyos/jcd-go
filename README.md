@@ -7,7 +7,7 @@ filesystem with the keyboard, and — on exit — reports the final directory ba
 to a thin shell wrapper so the wrapper can change the shell's working
 directory.
 
-> **Status:** released (`1.0.0`). The interactive TUI is implemented:
+> **Status:** released (`1.1.0`). The interactive TUI is implemented:
 > browsing, navigation, sort cycling, search, file opening, a scrollable help
 > screen, drive selection, themes, optional mouse support, configuration, and
 > the PowerShell `cd` integration.
@@ -28,9 +28,10 @@ On Windows this produces `jcd.exe`.
 ## Use
 
 A child process cannot change its parent shell's working directory, so a thin
-wrapper runs `jcd`, captures the final path from **stdout**, and applies it
-with `Set-Location`. The interface itself renders to **stderr**, keeping stdout
-clean for the path.
+wrapper runs `jcd`, captures the banner and final path from **stdout**, and
+applies the path with `Set-Location`. The interface itself renders to
+**stderr**. On exit the wrapper prints the product banner and a
+"Changing current directory to …" confirmation.
 
 Put the binary on `PATH` (or set `JCD_BIN` to its full path), then add one of
 these to your PowerShell profile:
@@ -91,7 +92,8 @@ in IEC units (`B`, `KiB`, `MiB`, `GiB`, …).
 | Backspace | Go to the parent directory (drive list at a drive root) |
 | F1 / ? | Toggle the help screen |
 | F2 | Cycle sort mode (Name/Date/Size × Asc/Desc) |
-| `/` | Enter search mode (typing selects the first match) |
+| F3 | Enter search mode (typing selects the first match) |
+| Type a character | Enter search mode seeded with that character |
 | Enter (search) | Open the selected entry, then leave search |
 | Tab / Shift+Tab (search) | Next / previous match |
 | Esc (search) | Cancel search |
@@ -133,4 +135,4 @@ modified.
 ## Versioning
 
 The project follows [semantic versioning](https://semver.org/). The current
-version is `1.0.0`.
+version is `1.1.0`.

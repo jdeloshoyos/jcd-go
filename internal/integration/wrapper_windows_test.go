@@ -92,7 +92,7 @@ func TestPowerShellWrapperChangesDirectory(t *testing.T) {
 	if err := os.Mkdir(target, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	mock := writeMock(t, dir, "Write-Output $args[0]\n")
+	mock := writeMock(t, dir, "Write-Output 'JCD banner'\nWrite-Output $args[0]\n")
 
 	runWrapper(t, shell, wrapper, mock, "", target, target)
 }
@@ -111,7 +111,7 @@ func TestPowerShellWrapperIgnoresFailure(t *testing.T) {
 	}
 
 	// The mock prints a target but reports failure; the wrapper must ignore it.
-	mock := writeMock(t, dir, "Write-Output $args[0]\nexit 1\n")
+	mock := writeMock(t, dir, "Write-Output 'JCD banner'\nWrite-Output $args[0]\nexit 1\n")
 
 	runWrapper(t, shell, wrapper, mock, start, target, start)
 }
@@ -129,7 +129,7 @@ func TestPowerShellWrapperRejectsInvalidTarget(t *testing.T) {
 
 	// The mock exits successfully but reports a path that does not exist; the
 	// wrapper must reject it and stay put.
-	mock := writeMock(t, dir, "Write-Output $args[0]\n")
+	mock := writeMock(t, dir, "Write-Output 'JCD banner'\nWrite-Output $args[0]\n")
 
 	runWrapper(t, shell, wrapper, mock, start, missing, start)
 }
@@ -151,7 +151,7 @@ func TestPowerShellWrapperHandlesSpecialPaths(t *testing.T) {
 			if err := os.Mkdir(target, 0o755); err != nil {
 				t.Fatalf("mkdir: %v", err)
 			}
-			mock := writeMock(t, dir, "Write-Output $args[0]\n")
+			mock := writeMock(t, dir, "Write-Output 'JCD banner'\nWrite-Output $args[0]\n")
 
 			runWrapper(t, shell, wrapper, mock, "", target, target)
 		})

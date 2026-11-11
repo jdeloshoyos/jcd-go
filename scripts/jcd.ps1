@@ -3,8 +3,9 @@
 # Usage:
 #   jcd [directory]
 #
-# jcd renders its interface on stderr and prints the final directory to
-# stdout, so this wrapper captures only the path and applies it with
+# jcd renders its interface on stderr. On exit it prints two lines to stdout:
+# a banner (product name and version) followed by the final directory. This
+# wrapper captures them, prints a confirmation, and applies the path with
 # Set-Location. The Go process cannot change its parent shell's directory
 # itself.
 #
@@ -25,15 +26,21 @@ if ($LASTEXITCODE -ne 0) {
     return
 }
 
-$target = @($result) |
-    Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
-    Select-Object -First 1
+$lines = @($result) |
+    Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
 
-if ([string]::IsNullOrWhiteSpace($target)) {
+if ($lines.Count -eq 0) {
     return
 }
 
+# The banner is the first line; the target path is the last line.
+if ($lines.Count -ge 2) {
+    Write-Host $lines[0]
+}
+$target = $lines[-1]
+
 if (Test-Path -LiteralPath $target -PathType Container) {
+    Write-Host "Changing current directory to $target"
     Set-Location -LiteralPath $target
 } else {
     [Console]::Error.WriteLine("jcd: '$target' is not a valid directory")

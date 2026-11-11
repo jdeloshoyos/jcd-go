@@ -102,6 +102,9 @@ func run(args []string) int {
 		return cli.ExitError
 	}
 
+	// Print a banner and the target path. The shell wrapper turns these into a
+	// human-readable confirmation and applies the path with Set-Location.
+	fmt.Printf("%s v%s\n", version.Name, version.Version)
 	fmt.Println(m.ChosenDir())
 	return cli.ExitOK
 }

@@ -1,7 +1,7 @@
 # JCD — Behaviour Specification
 
 - **Status:** Draft
-- **Version:** 1.0.0
+- **Version:** 1.1.0
 - **Last updated:** 2026-11-10
 
 This document defines exactly how the app behaves. It is the reference for the
@@ -34,13 +34,19 @@ Esc in `searching` returns to `browsing`; Esc in `browsing` quits. F1 toggles
 | `Backspace`  | Go to parent directory (or drive-select at a drive root). |
 | `F1` / `?`   | Toggle help. |
 | `F2`         | Cycle sort mode. |
-| `/`          | Enter search mode. |
+| `F3`         | Enter search mode with an empty query. |
+| Any visible character | Enter search mode with that character as the query. |
 | `Esc`        | Quit and report the current directory. |
+
+Keys already bound to an action keep it: only visible, printable, non-space
+characters that are not otherwise mapped start a search (so `?` still toggles
+help, and space does not search).
 
 ### 2.2 Searching
 
 Typing a query moves the selection to the first match immediately; the matched
-substring is highlighted in every matching row.
+substring is highlighted in every matching row. Search can be opened with `F3`
+(empty query) or by typing any visible character, which seeds the query.
 
 | Key     | Action |
 | ------- | ------ |
@@ -154,9 +160,11 @@ deliberate change from the legacy `KB`/`MB` formatting.
 
 ### 7.1 Success
 
-The app restores the terminal, then writes **exactly one line** to stdout:
+The app restores the terminal, then writes **two lines** to stdout: a banner
+followed by the target path.
 
 ```
+JCD Terminal Directory Navigator v<version>
 <absolute target path>
 ```
 
@@ -168,16 +176,17 @@ Errors are written to stderr and the process exits non-zero:
 
 | Exit code | Meaning |
 | --------- | ------- |
-| `0`       | Success; path written to stdout. |
+| `0`       | Success; banner and path written to stdout. |
 | `1`       | Runtime error (e.g. cannot read directory). |
 | `2`       | Usage error (e.g. invalid argument). |
 | `3`       | Terminal too small. |
 
 ### 7.3 Shell wrapper
 
-A thin wrapper consumes the stdout line and changes the parent shell's working
+A thin wrapper consumes the stdout lines and changes the parent shell's working
 directory. Because the wrapper captures stdout, the TUI renders to **stderr**;
-stdout carries only the path. For PowerShell:
+stdout carries only the banner and the path. The wrapper prints the banner and a
+confirmation line, then applies the path (the last line). For PowerShell:
 
 ```powershell
 $binary = if ($env:JCD_BIN) { $env:JCD_BIN } else { 'jcd' }
@@ -185,8 +194,13 @@ $global:LASTEXITCODE = 0
 $result = & $binary @args
 if ($LASTEXITCODE -ne 0) { return }
 
-$target = $result | Where-Object { $_ } | Select-Object -First 1
-if ($target -and (Test-Path -LiteralPath $target -PathType Container)) {
+$lines = @($result) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+if ($lines.Count -eq 0) { return }
+
+if ($lines.Count -ge 2) { Write-Host $lines[0] }   # banner
+$target = $lines[-1]
+if (Test-Path -LiteralPath $target -PathType Container) {
+    Write-Host "Changing current directory to $target"
     Set-Location -LiteralPath $target
 }
 ```

@@ -301,6 +301,17 @@ func (m *Model) exitSearch() {
 	m.status = ""
 }
 
+// startSearchWith enters search mode with text pre-filled as the query and
+// immediately selects the first match. It is used for type-to-search, where
+// the character that started the search becomes its first character.
+func (m *Model) startSearchWith(text string) {
+	m.startSearch()
+	if text != "" {
+		m.search.SetValue(text)
+	}
+	m.followFirstMatch()
+}
+
 // followFirstMatch moves the cursor to the first match for the current query so
 // that typing in search mode selects the first matching entry immediately. It
 // leaves the selection unchanged when nothing matches.

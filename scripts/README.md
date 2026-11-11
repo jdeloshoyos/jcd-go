@@ -5,8 +5,9 @@ change the parent shell's working directory.
 
 ## PowerShell — `jcd.ps1`
 
-The wrapper runs the navigator, captures the final path from stdout, and applies
-it with `Set-Location`. The interface renders to stderr so stdout stays clean.
+The wrapper runs the navigator, captures the banner and final path from stdout,
+prints the banner and a "Changing current directory to …" confirmation, then
+applies the path with `Set-Location`. The interface renders to stderr.
 
 Add one of these to your PowerShell profile:
 

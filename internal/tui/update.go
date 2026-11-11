@@ -1,6 +1,10 @@
 package tui
 
-import tea "charm.land/bubbletea/v2"
+import (
+	"unicode"
+
+	tea "charm.land/bubbletea/v2"
+)
 
 // Update implements tea.Model.
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -119,10 +123,31 @@ func (m Model) updateBrowsing(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 		m.startHelp(StateBrowsing)
 	case "f2":
 		m.cycleSort()
-	case "/":
+	case "f3":
 		m.startSearch()
+	default:
+		// Typing a visible, printable character starts a search seeded with it.
+		if seed := searchSeed(msg); seed != "" {
+			m.startSearchWith(seed)
+		}
 	}
 	return m, nil
+}
+
+// searchSeed returns the text that should seed a new search, or "" when the
+// keystroke should not start one. Only visible, printable, non-space
+// characters start a search; mapped keys (arrows, Enter, F-keys, "?", Esc,
+// etc.) either have an empty Text or are handled before this check.
+func searchSeed(msg tea.KeyPressMsg) string {
+	if msg.Text == "" {
+		return ""
+	}
+	for _, r := range msg.Text {
+		if unicode.IsSpace(r) || !unicode.IsPrint(r) {
+			return ""
+		}
+	}
+	return msg.Text
 }
 
 func (m Model) updateDriveSelect(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
