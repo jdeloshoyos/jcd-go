@@ -10,7 +10,7 @@
 #
 # Set JCD_BIN to override the executable (useful for tests).
 
-$binary = if ($env:JCD_BIN) { $env:JCD_BIN } else { 'jcd' }
+$binary = if ($env:JCD_BIN) { $env:JCD_BIN } else { 'jcd_bin' }
 
 $global:LASTEXITCODE = 0
 try {
