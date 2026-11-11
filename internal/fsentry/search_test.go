@@ -103,3 +103,73 @@ func TestNthMatch(t *testing.T) {
 		}
 	}
 }
+
+func TestMatchesIgnoresAccents(t *testing.T) {
+	entries := []Entry{
+		{Name: "imágenes"},   // 1
+		{Name: "café"},       // 2
+		{Name: "cafe\u0301"}, // 3: decomposed café (e + combining acute)
+		{Name: "naïve"},      // 4
+		{Name: "über"},       // 5
+		{Name: "plain"},      // 6
+	}
+
+	tests := []struct {
+		name  string
+		query string
+		want  []int
+	}{
+		{"unaccented query matches accented name", "imagenes", []int{1}},
+		{"accented query matches same name", "IMÁGENES", []int{1}},
+		{"partial unaccented", "ima", []int{1}},
+		{"unaccented query matches precomposed and decomposed", "cafe", []int{2, 3}},
+		{"accented query matches precomposed and decomposed", "café", []int{2, 3}},
+		{"diaeresis", "naive", []int{4}},
+		{"accented diaeresis query", "naïve", []int{4}},
+		{"umlaut", "uber", []int{5}},
+		{"uppercase accented query", "ÜBER", []int{5}},
+		{"combining mark alone matches nothing", "\u0301", nil},
+		{"no match", "zzz", nil},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := Matches(entries, tt.query); !slices.Equal(got, tt.want) {
+				t.Errorf("Matches(%q) = %v, want %v", tt.query, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestHighlightRangeIgnoresAccents(t *testing.T) {
+	tests := []struct {
+		name  string
+		s     string
+		query string
+		start int
+		end   int
+	}{
+		{"unaccented query over accent", "imágenes", "ima", 0, 4},
+		{"after the accent", "imágenes", "genes", 4, 9},
+		{"whole name", "imágenes", "imagenes", 0, 9},
+		{"single accented rune", "imágenes", "á", 2, 4},
+		{"uppercase single accented rune", "imágenes", "Á", 2, 4},
+		{"precomposed accent", "café", "cafe", 0, 5},
+		{"decomposed accent includes the mark", "cafe\u0301", "café", 0, 6},
+		{"diaeresis in the middle", "naïve", "naive", 0, 6},
+		{"leading umlaut", "über", "uber", 0, 5},
+		{"no match", "plain", "zzz", -1, -1},
+		{"empty query", "plain", "", -1, -1},
+		{"combining mark alone", "plain", "\u0301", -1, -1},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			start, end := HighlightRange(tt.s, tt.query)
+			if start != tt.start || end != tt.end {
+				t.Errorf("HighlightRange(%q, %q) = (%d, %d), want (%d, %d)",
+					tt.s, tt.query, start, end, tt.start, tt.end)
+			}
+		})
+	}
+}

@@ -1,7 +1,7 @@
 # JCD — Architecture
 
 - **Status:** Draft
-- **Version:** 1.1.0
+- **Version:** 1.1.1
 - **Last updated:** 2026-11-10
 
 ## 1. Technology stack
@@ -139,7 +139,7 @@ because that is not portable (or possible) for a child process.
 - `go build ./...` and `go test ./...` must pass on all CI platforms.
 - `build_prd.ps1` produces a smaller Windows binary (`jcd_bin.exe`) with
   `-trimpath` and `-ldflags="-s -w"`, stripping DWARF symbols and debug info.
-- Semantic versioning; the current release is `1.1.0`.
+- Semantic versioning; the current release is `1.1.1`.
 
 ## 9. Deliberate design decisions
 

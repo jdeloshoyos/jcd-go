@@ -14,11 +14,21 @@
 $binary = if ($env:JCD_BIN) { $env:JCD_BIN } else { 'jcd_bin' }
 
 $global:LASTEXITCODE = 0
+
+# jcd writes UTF-8 to stdout. Windows PowerShell 5.1 decodes a native command's
+# stdout with [Console]::OutputEncoding, which defaults to the OEM code page
+# (for example CP850). That corrupts non-ASCII paths: the UTF-8 bytes for "á"
+# (0xC3 0xA1) are read as two OEM characters, turning "Imágenes" into
+# "Im├ígenes". Force UTF-8 for the call, then restore the previous encoding.
+$oldOutputEncoding = [Console]::OutputEncoding
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 try {
     $result = & $binary @args
 } catch {
     [Console]::Error.WriteLine("jcd: failed to run '$binary': $_")
     return
+} finally {
+    [Console]::OutputEncoding = $oldOutputEncoding
 }
 
 if ($LASTEXITCODE -ne 0) {

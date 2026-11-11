@@ -1,7 +1,7 @@
 # JCD — Behaviour Specification
 
 - **Status:** Draft
-- **Version:** 1.1.0
+- **Version:** 1.1.1
 - **Last updated:** 2026-11-10
 
 This document defines exactly how the app behaves. It is the reference for the
@@ -45,8 +45,9 @@ help, and space does not search).
 ### 2.2 Searching
 
 Typing a query moves the selection to the first match immediately; the matched
-substring is highlighted in every matching row. Search can be opened with `F3`
-(empty query) or by typing any visible character, which seeds the query.
+substring is highlighted in every matching row. Matching ignores case and
+accents. Search can be opened with `F3` (empty query) or by typing any visible
+character, which seeds the query.
 
 | Key     | Action |
 | ------- | ------ |
@@ -76,8 +77,9 @@ substring is highlighted in every matching row. Search can be opened with `F3`
 
 ## 3. Search semantics
 
-- Search is case-insensitive and matches **anywhere** in the entry name
-  (substring), not only at the start.
+- Search is case- and diacritic-insensitive and matches **anywhere** in the
+  entry name (substring), not only at the start. Accents are stripped to their
+  base character, so `ima` matches `imágenes`, `imá`, `imà`, and `ïma`.
 - An empty query matches nothing.
 - Typing moves the selection to the first match as soon as one exists; when
   nothing matches, the selection is left unchanged.
@@ -191,7 +193,16 @@ confirmation line, then applies the path (the last line). For PowerShell:
 ```powershell
 $binary = if ($env:JCD_BIN) { $env:JCD_BIN } else { 'jcd' }
 $global:LASTEXITCODE = 0
-$result = & $binary @args
+
+# jcd writes UTF-8; force UTF-8 decoding for the native command and restore it.
+$oldOutputEncoding = [Console]::OutputEncoding
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+try {
+    $result = & $binary @args
+} finally {
+    [Console]::OutputEncoding = $oldOutputEncoding
+}
+
 if ($LASTEXITCODE -ne 0) { return }
 
 $lines = @($result) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
@@ -204,6 +215,15 @@ if (Test-Path -LiteralPath $target -PathType Container) {
     Set-Location -LiteralPath $target
 }
 ```
+
+The path is transferred as **UTF-8**. Windows PowerShell 5.1 decodes a native
+command's stdout with `[Console]::OutputEncoding`, which defaults to the OEM code
+page (for example CP850). Reading UTF-8 bytes that way corrupts non-ASCII names:
+the bytes for `á` (`0xC3 0xA1`) become `├í`, so `Imágenes` arrives as
+`Im├ígenes`. A wrapper must therefore save `[Console]::OutputEncoding`, set it
+to UTF-8 for the duration of the call, and restore it afterwards. This only
+affects the captured stdout; the TUI renders directly to stderr and is
+unaffected.
 
 The Go process never attempts to modify the parent shell's directory directly
 (a child process cannot portably change its parent's working directory). The

@@ -9,6 +9,12 @@ The wrapper runs the navigator, captures the banner and final path from stdout,
 prints the banner and a "Changing current directory to …" confirmation, then
 applies the path with `Set-Location`. The interface renders to stderr.
 
+The path crosses the process boundary as UTF-8. Windows PowerShell 5.1 decodes
+native command output with `[Console]::OutputEncoding` (the OEM code page by
+default), which corrupts non-ASCII names — for example `Imágenes` becomes
+`Im├ígenes`. The wrapper saves that setting, switches to UTF-8 for the call, and
+restores it afterwards, so accented and non-Latin directory names work.
+
 Add one of these to your PowerShell profile:
 
 ```powershell

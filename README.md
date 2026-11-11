@@ -7,7 +7,7 @@ filesystem with the keyboard, and — on exit — reports the final directory ba
 to a thin shell wrapper so the wrapper can change the shell's working
 directory.
 
-> **Status:** released (`1.1.0`). The interactive TUI is implemented:
+> **Status:** released (`1.1.1`). The interactive TUI is implemented:
 > browsing, navigation, sort cycling, search, file opening, a scrollable help
 > screen, drive selection, themes, optional mouse support, configuration, and
 > the PowerShell `cd` integration.
@@ -145,4 +145,4 @@ modified.
 ## Versioning
 
 The project follows [semantic versioning](https://semver.org/). The current
-version is `1.1.0`.
+version is `1.1.1`.

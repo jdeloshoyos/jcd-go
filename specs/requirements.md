@@ -1,7 +1,7 @@
 # JCD — Requirements
 
 - **Status:** Draft
-- **Version:** 1.1.0
+- **Version:** 1.1.1
 - **Last updated:** 2026-11-10
 
 Requirement IDs are stable references used by the test suite and by
@@ -58,7 +58,7 @@ Requirement IDs are stable references used by the test suite and by
 | ID           | Requirement |
 | ------------ | ----------- |
 | `FR-SRCH-1`  | F3 enters an explicit search-input mode; typing any visible, printable character not bound to another action also enters it, seeded with that character. |
-| `FR-SRCH-2`  | Matching is a case-insensitive substring match anywhere in the entry name. |
+| `FR-SRCH-2`  | Matching is a case- and diacritic-insensitive substring match anywhere in the entry name: `ima` matches `imágenes`, `imá`, `imà`, and `ïma`. |
 | `FR-SRCH-3`  | Typing moves the selection to the first match; Tab cycles through matches, wrapping around. |
 | `FR-SRCH-4`  | Esc cancels search mode without changing the selection. |
 | `FR-SRCH-5`  | A search with no matches leaves the selection unchanged and shows a zero match count. |

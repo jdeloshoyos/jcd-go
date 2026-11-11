@@ -1,7 +1,7 @@
 # JCD — Legacy Compatibility
 
 - **Status:** Draft
-- **Version:** 1.1.0
+- **Version:** 1.1.1
 - **Last updated:** 2026-11-10
 
 This document maps the PowerBASIC legacy application (`legacy-app/`) to the Go
@@ -41,7 +41,8 @@ port and records every deliberate behavioural difference.
 The legacy app started a search on any printable key, with a silent one-second
 reset window, and `Tab` to cycle. The port uses an explicit `/` search mode
 with a visible input, `Enter` to jump, and `Tab` to cycle. This is more
-discoverable and removes the hidden timer.
+discoverable and removes the hidden timer. The port also folds accents before
+comparing, so searching `ima` matches `imágenes`.
 
 ### 3.2 Output protocol
 Legacy: `1.2*OK*C:\some\dir`, parsed by splitting on `*`. A path containing `*`
@@ -82,7 +83,7 @@ selection keeps working.
 ## 4. Parity checklist
 
 - [x] Six sort modes, directories first
-- [x] Case-insensitive substring search, nth match
+- [x] Case- and diacritic-insensitive substring search, nth match
 - [x] Nine-character attribute mask in legacy order
 - [x] IEC size formatting (deliberate delta)
 - [x] Optional configuration (theme, sort, mouse)

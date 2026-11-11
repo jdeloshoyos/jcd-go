@@ -22,7 +22,7 @@ Commands:
   F3                        Start a search (or start typing)
 
 Search:
-  Matching is case-insensitive and matches anywhere in the entry name.
+  Matching ignores case and accents and matches anywhere in the name.
   Typing moves the selection to the first match.
     Enter       Open the selected entry and leave search
     Tab         Next match (wraps)
