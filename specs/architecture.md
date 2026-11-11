@@ -1,8 +1,8 @@
 # JCD — Architecture
 
 - **Status:** Draft
-- **Version:** 1.1.1
-- **Last updated:** 2026-11-10
+- **Version:** 1.2.0
+- **Last updated:** 2026-11-11
 
 ## 1. Technology stack
 
@@ -27,6 +27,7 @@ cmd/jcd/              command entry point: arguments, run loop, output protocol
 internal/cli/         start-directory resolution, argument parsing, exit codes
 internal/config/      optional JSON configuration (theme, sort, mouse)
 internal/fsentry/     portable model + pure logic (no TUI, no OS-specific code)
+internal/history/     tracked-directory store for Quick Access
 internal/tui/         Bubble Tea model, update, view, styles, help
 internal/platform/    the only package with build-tagged OS-specific code
 internal/version/     semantic version, single source of truth
@@ -43,17 +44,24 @@ small enough to live in `cmd/jcd` and `internal/cli`.
 
 ```
 cmd/jcd  ──────────────►  internal/tui  ──────►  internal/fsentry
-   │                                              ▲
+   │                          │                     ▲
+   │                          └──────►  internal/history
    └──────────►  internal/platform  ──────────────┘
 ```
 
 - `internal/fsentry` imports **only the standard library**. It must stay free
   of terminal and OS-specific dependencies.
+- `internal/history` also imports only the standard library. It owns the
+  tracked-directory store used by Quick Access and has no terminal
+  dependencies.
 - `internal/platform` imports `internal/fsentry` to construct entries and
   attribute models. It is the only package with `//go:build` OS tags.
-- `internal/tui` imports `internal/fsentry` for the model and `internal/platform`
-  for OS actions (open file, drive list). It does not import `cmd`.
-- `cmd/jcd` wires everything together and owns process exit.
+- `internal/tui` imports `internal/fsentry` for the model, `internal/history`
+  for Quick Access, and `internal/platform` for OS actions (open file, drive
+  list). It does not import `cmd`.
+- `cmd/jcd` wires everything together and owns process exit. It loads the
+  history store, passes it to the TUI, records the final selection, and saves
+  the store.
 
 Because OS-specific attribute extraction is injected into `fsentry.ScanDir` as
 a function (`fsentry.AttrFunc`), the platform package implements the interface
@@ -81,13 +89,17 @@ value).
 Follows the Elm architecture:
 
 - `Model` holds the current `Listing`, cursor/offset, sort mode, search query,
-  active theme, mouse flag, and the active state (`browsing`, `searching`,
-  `help`, `drive-select`).
+  active theme, mouse flag, the tracked-directory store, and the active state
+  (`browsing`, `searching`, `help`, `drive-select`, `quick-access`).
 - `Update` handles key, mouse, and resize messages, switching on state.
 - `View` renders the header, entry viewport, and footer with Lip Gloss and
   sets the terminal mouse mode when enabled.
 - The listing is a **hand-rolled viewport** for pixel-faithful columns. Help
   uses `bubbles/viewport`; search uses `bubbles/textinput`.
+- Quick Access is a centered bordered popup overlaid on the directory listing
+  (the listing stays visible around it), flattened into a single list of
+  section and entry rows. Navigation skips section rows; long paths are
+  middle-truncated at segment boundaries (`truncateMiddlePath`).
 - `Theme` bundles all styles. `default` is color-coded; `mono` uses bold,
   underline, and reverse video only.
 
@@ -103,6 +115,15 @@ Bubble Tea v2 opens the TTY automatically when stdin is not a terminal.
 The wrapper is invoked in the caller's session and applies the path with
 `Set-Location`. The Go process never changes its parent's directory directly,
 because that is not portable (or possible) for a child process.
+
+### 5.2 Tracked directories (`internal/history`)
+
+`history.Store` owns a single in-memory collection and its JSON file. It
+exposes `Load`, `Save`, `Record`, `ToggleFavorite`, `PruneMissing`, and
+`Sections`; the TUI derives the Favorites/Recent/Frequent views from
+`Sections`. Recording deduplicates case-insensitively on Windows, updates the
+visit count and timestamp, and trims to the 100 best-ranked entries. The store
+is independent of the user-authored configuration file.
 
 ## 6. Platform abstraction (`internal/platform`)
 
@@ -121,13 +142,17 @@ because that is not portable (or possible) for a child process.
   symlinks, Unicode, special characters, counts, totals), all six sort modes,
   search matching/nth-match, IEC size formatting, and attribute masks.
 - **Config tests** for defaults, missing/partial/invalid files, and sort parsing.
+- **History tests** for recording/upsert, Windows case-insensitive dedup,
+  favorite toggling, eviction ranking, missing-directory pruning, section
+  derivation, and JSON round-tripping.
 - **Platform tests** for attribute mapping: raw Win32 bitmasks plus real
   read-only/hidden/symlink files on Windows; dotfiles, permissions, and
   symlinks on Unix.
 - **TUI tests** driven through `Update`: every key, state transitions, error
-  paths, and a Program-level smoke test of the real Bubble Tea loop.
-- **Golden tests** for `View()` covering browsing, search, help, drives, and
-  small terminals.
+  paths, Quick Access navigation/favorite toggling/enter-to-jump, and a
+  Program-level smoke test of the real Bubble Tea loop.
+- **Golden tests** for `View()` covering browsing, search, help, drives, Quick
+  Access, and small terminals.
 - **Integration tests** for the PowerShell wrapper: success, failure, and
   special/Unicode paths.
 - **Benchmarks** for sorting, searching, and scanning large listings.
@@ -139,7 +164,7 @@ because that is not portable (or possible) for a child process.
 - `go build ./...` and `go test ./...` must pass on all CI platforms.
 - `build_prd.ps1` produces a smaller Windows binary (`jcd_bin.exe`) with
   `-trimpath` and `-ldflags="-s -w"`, stripping DWARF symbols and debug info.
-- Semantic versioning; the current release is `1.1.1`.
+- Semantic versioning; the current release is `1.2.0`.
 
 ## 9. Deliberate design decisions
 
@@ -150,3 +175,7 @@ because that is not portable (or possible) for a child process.
 - **UI on stderr, result on stdout** so a capturing wrapper receives only the
   banner and path.
 - **Windows-first**; the platform layer keeps Unix support a small addition.
+- **Quick Access uses a single tracked collection** and derives Favorites,
+  Recent, and Frequent views from it, avoiding separate "recent" and "frequent"
+  stores. The history lives in its own JSON file so user configuration is never
+  rewritten.

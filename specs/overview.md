@@ -1,8 +1,8 @@
 # JCD — Product Overview
 
 - **Status:** Draft
-- **Version:** 1.1.1
-- **Last updated:** 2026-11-10
+- **Version:** 1.2.0
+- **Last updated:** 2026-11-11
 
 ## 1. Vision
 
@@ -19,12 +19,14 @@ advantage of a cross-platform runtime and a modern TUI stack.
 
 - **Functional parity** with the legacy navigator: listing, navigation,
   sorting, search, help, drive selection, and file opening.
+- **Quick Access**: jump to frequently or recently used directories from
+  anywhere in the filesystem with a single key (`F4`).
 - **Single static binary** for simple deployment.
 - **Windows first**, with architecture that keeps Linux and macOS support
   cheap to add.
 - **Spec-driven and well tested**: behaviour is described in `specs/` and
   protected by unit, integration, and regression tests.
-- **Semantic versioning**, currently at the `1.1.1` release.
+- **Semantic versioning**, currently at the `1.2.0` release.
 
 ## 3. Non-goals (initial)
 

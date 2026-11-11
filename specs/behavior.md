@@ -1,8 +1,8 @@
 # JCD — Behaviour Specification
 
 - **Status:** Draft
-- **Version:** 1.1.1
-- **Last updated:** 2026-11-10
+- **Version:** 1.2.0
+- **Last updated:** 2026-11-11
 
 This document defines exactly how the app behaves. It is the reference for the
 test suite.
@@ -17,9 +17,11 @@ The TUI is a small state machine:
 | `searching`   | Search-input mode is active. |
 | `help`        | Help screen is displayed. |
 | `drive-select`| Windows drive-selection screen. |
+| `quick-access`| Quick Access popup for tracked directories. |
 
 Esc in `searching` returns to `browsing`; Esc in `browsing` quits. F1 toggles
-`help`. Backspace at a drive root switches to `drive-select`.
+`help`. Backspace at a drive root switches to `drive-select`. F4 opens
+`quick-access` from `browsing`; Esc there closes it and returns to `browsing`.
 
 ## 2. Key bindings
 
@@ -74,6 +76,18 @@ character, which seeds the query.
 | `Enter`| Navigate to the selected drive root. |
 | `F1` / `?` | Toggle help; closing it returns here. |
 | `Esc`  | Quit and report the last browsed directory. |
+
+### 2.5 Quick Access
+
+| Key          | Action |
+| ------------ | ------ |
+| `F4`         | Open Quick Access from browsing. |
+| `↑` / `↓`    | Move the selection between directory entries (section headers are skipped). |
+| `PgUp`/`PgDn`| Move one page of entries. |
+| `Home`/`End` | First / last entry. |
+| `Enter`      | Jump to the selected directory and quit, so the wrapper changes the shell's directory. |
+| `F`          | Toggle the selected entry's favorite status. |
+| `Esc`        | Close the popup without navigating. |
 
 ## 3. Search semantics
 
@@ -147,6 +161,38 @@ Nine positions, in order. A dash means the attribute is absent.
 On non-Windows platforms the mask is derived from portable metadata: `d` for
 directories, `l` for symlinks, `h` for dotfiles, and `r` when the owner lacks
 write permission.
+
+### 5.2 Quick Access popup
+
+The popup is a centered, bordered window overlaid on the directory listing, so
+the listing stays visible around it. It contains a single scrollable list
+grouped into sections, in this order: Favorites (`★ Favorites`), Recent
+(`🕒 Recent`), and Frequent (`🔥 Frequent`). A directory may appear in more than
+one section, but never twice within the same section. Empty sections are
+omitted.
+
+- Favorite entries are prefixed with `★ `; other entries are indented with two
+  spaces so paths stay aligned.
+- Each section has a title row and a dashed rule beneath it; the cursor skips
+  both.
+- The popup footer shows `[↑↓]=Move [Enter]=Go [F]=Favorite [Esc]=Close`.
+- When no tracked directory is available, the popup shows
+  `No tracked directories yet.`
+
+Paths wider than the popup are **middle-truncated at segment boundaries**: the
+beginning (volume/root and as many leading segments as fit) and the end
+(ideally the parent and leaf) are preserved, and removed middle segments are
+replaced by `...`. For example:
+
+```
+C:\users\jaime\documents\projects\doccompose\backend
+C:\users\jaime\...\doccompose\backend
+C:\users\...\doccompose\backend
+C:\...\doccompose\backend
+```
+
+Segment names are not cut while a shorter segment combination still fits. Only
+as a last resort is the leaf itself truncated.
 
 ## 6. Size formatting
 
@@ -283,3 +329,28 @@ Two themes are available:
 - `mono` — no colors; relies on bold, underline, and reverse video.
 
 The help screen is a full-screen bordered panel in both themes.
+
+## 12. Quick Access tracking
+
+JCD keeps a single persisted collection of the directories the user has
+selected. There are no separate "recent" and "frequent" collections: all views
+are derived from this one list.
+
+- A visit is recorded whenever the app exits normally with a reported
+  directory (for example Esc, Ctrl+C, or Enter in Quick Access), just before the
+  banner and path are written to stdout.
+- If the directory is already tracked, its visit count is incremented and its
+  last-visited time is updated; otherwise a new entry is created with a visit
+  count of `1`.
+- At most 100 directories are kept. When the collection exceeds the limit, the
+  lowest-ranked entries are removed, favoring favorites, then frequently used
+  (higher visit count), then recently used directories.
+- Directories that no longer exist are skipped when the popup is built and
+  removed when the collection is saved.
+- The history is stored separately from the configuration in
+  `<UserConfigDir>/jcd/tracked.json` (`%AppData%\jcd\tracked.json` on Windows)
+  as `{"directories": [...]}`. Each entry records `path`, `visit_count`,
+  `last_visited_utc`, and `favorite`.
+- The Favorites section lists every favorite, ordered by recency. Recent lists
+  the 10 most recently visited directories. Frequent lists the 10 most visited
+  directories, newest first on ties.

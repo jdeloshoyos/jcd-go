@@ -12,7 +12,7 @@ import (
 
 const dateLayout = "2006/01/02 15:04:05"
 
-const footerKeys = "[↑↓]=Move [Enter]=Open [Bksp]=Up [F3]=Search [F1]=Help [ESC]=Quit"
+const footerKeys = "[↑↓]=Move [Enter]=Open [Bksp]=Up [F3]=Search [F4]=Quick [F1]=Help [ESC]=Quit"
 
 const footerDriveKeys = "[↑↓]=Select [Enter]=Open [F1]=Help [ESC]=Quit"
 
@@ -36,6 +36,9 @@ func (m Model) render() string {
 	}
 	if m.state == StateHelp {
 		return m.renderHelp()
+	}
+	if m.state == StateQuickAccess {
+		return m.renderQuickAccess()
 	}
 	return m.renderBrowser()
 }

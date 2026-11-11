@@ -10,6 +10,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 
 	"jcd-go/internal/fsentry"
+	"jcd-go/internal/history"
 	"jcd-go/internal/platform"
 )
 
@@ -36,13 +37,16 @@ const (
 	StateHelp
 	// StateDriveSelect is the Windows-style drive list.
 	StateDriveSelect
+	// StateQuickAccess is the Quick Access popup.
+	StateQuickAccess
 )
 
 // Options configures a new model.
 type Options struct {
-	Theme string // "default" or "mono"; empty selects the default
-	Sort  fsentry.SortMode
-	Mouse bool
+	Theme   string // "default" or "mono"; empty selects the default
+	Sort    fsentry.SortMode
+	Mouse   bool
+	History *history.Store // Quick Access data; nil uses a disabled store
 }
 
 // DefaultOptions returns the default model options.
@@ -63,6 +67,12 @@ type Model struct {
 
 	helpReturn State
 
+	history     *history.Store
+	quickRows   []quickRow
+	quickCursor int
+	quickOffset int
+	quickReturn State
+
 	width  int
 	height int
 
@@ -70,8 +80,9 @@ type Model struct {
 	quitting bool
 	chosen   string
 
-	theme Theme
-	mouse bool
+	theme     Theme
+	mouse     bool
+	dirExists func(string) bool
 
 	openFile func(string) error
 }
@@ -95,9 +106,17 @@ func NewWithOptions(dir string, opts Options) (Model, error) {
 		height:   defaultHeight,
 		search:   newSearchInput(),
 		help:     viewport.New(),
+		history:  opts.History,
 		theme:    theme,
 		mouse:    opts.Mouse,
+		dirExists: func(path string) bool {
+			info, err := os.Stat(path)
+			return err == nil && info.IsDir()
+		},
 		openFile: platform.OpenFile,
+	}
+	if m.history == nil {
+		m.history = history.New("")
 	}
 	if err := m.loadDir(dir); err != nil {
 		return Model{}, err

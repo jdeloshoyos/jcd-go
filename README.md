@@ -7,10 +7,11 @@ filesystem with the keyboard, and — on exit — reports the final directory ba
 to a thin shell wrapper so the wrapper can change the shell's working
 directory.
 
-> **Status:** released (`1.1.1`). The interactive TUI is implemented:
+> **Status:** released (`1.2.0`). The interactive TUI is implemented:
 > browsing, navigation, sort cycling, search, file opening, a scrollable help
-> screen, drive selection, themes, optional mouse support, configuration, and
-> the PowerShell `cd` integration.
+> screen, drive selection, a Quick Access popup for tracked directories,
+> themes, optional mouse support, configuration, and the PowerShell `cd`
+> integration.
 
 ## Requirements
 
@@ -91,6 +92,12 @@ It is read from `--config <path>`, `JCD_CONFIG`, or the user config directory
 A missing config file is fine; an invalid one is a usage error. Sizes are shown
 in IEC units (`B`, `KiB`, `MiB`, `GiB`, …).
 
+JCD also records the directories you select so **Quick Access** (`F4`) can offer
+favorites, recent, and frequent paths. This history is stored separately in
+`%AppData%\jcd\tracked.json`, next to the config file, so the user-authored
+configuration is never rewritten. Up to 100 directories are kept, favoring
+favorites, then frequently used, then recently used entries.
+
 ## Keys
 
 | Key | Action |
@@ -103,10 +110,15 @@ in IEC units (`B`, `KiB`, `MiB`, `GiB`, …).
 | F1 / ? | Toggle the help screen |
 | F2 | Cycle sort mode (Name/Date/Size × Asc/Desc) |
 | F3 | Enter search mode (typing selects the first match) |
+| F4 | Open Quick Access |
 | Type a character | Enter search mode seeded with that character |
 | Enter (search) | Open the selected entry, then leave search |
 | Tab / Shift+Tab (search) | Next / previous match |
 | Esc (search) | Cancel search |
+| Up / Down (Quick Access) | Move the selection |
+| Enter (Quick Access) | Jump to the directory and quit |
+| F (Quick Access) | Toggle the selected entry's favorite status |
+| Esc (Quick Access) | Close the popup |
 | Esc | Quit and report the current directory |
 
 ## Test
@@ -121,7 +133,9 @@ go vet ./...
 ```
 cmd/jcd/            command entry point, argument handling, output protocol
 internal/cli/       start-directory resolution, terminal size, exit codes
+internal/config/    optional JSON configuration (theme, sort, mouse)
 internal/fsentry/   portable filesystem model and pure logic (scan, sort, search, size)
+internal/history/   tracked-directory store for Quick Access (favorites, recent, frequent)
 internal/platform/  OS-specific behaviour (attributes, drives, open-file)
 internal/tui/       Bubble Tea model, update, view, and styles
 internal/integration/ end-to-end wrapper tests
@@ -145,4 +159,4 @@ modified.
 ## Versioning
 
 The project follows [semantic versioning](https://semver.org/). The current
-version is `1.1.1`.
+version is `1.2.0`.

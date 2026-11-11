@@ -126,3 +126,16 @@ func TestDefaultPath(t *testing.T) {
 		t.Errorf("DefaultPath() = %q, want a jcd/config.json suffix", path)
 	}
 }
+
+func TestHistoryPath(t *testing.T) {
+	path := HistoryPath()
+	if path == "" {
+		t.Skip("user config directory is unavailable")
+	}
+	if !strings.HasSuffix(path, filepath.Join("jcd", "tracked.json")) {
+		t.Errorf("HistoryPath() = %q, want a jcd/tracked.json suffix", path)
+	}
+	if path == DefaultPath() {
+		t.Error("HistoryPath() must not equal DefaultPath()")
+	}
+}

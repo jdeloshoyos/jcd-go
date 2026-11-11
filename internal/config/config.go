@@ -35,6 +35,17 @@ func DefaultPath() string {
 	return filepath.Join(dir, "jcd", "config.json")
 }
 
+// HistoryPath returns the per-user tracked-directory path, or "" when it cannot
+// be determined. It deliberately lives next to the config file but is separate
+// from it, so the user-authored configuration is never rewritten.
+func HistoryPath() string {
+	dir, err := os.UserConfigDir()
+	if err != nil {
+		return ""
+	}
+	return filepath.Join(dir, "jcd", "tracked.json")
+}
+
 // Load reads the configuration at path. A missing file (or an empty path)
 // yields the defaults.
 func Load(path string) (Config, error) {

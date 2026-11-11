@@ -1,0 +1,24 @@
+/demo/project
+2 directories, 3 files; 2.5 KiB used.           [F2]=Toggle sort (Name Asc)  1/5
+d---╭──────────────────────────────────────────────────────────────────────╮
+d---│ Quick Access                                                         │
+-l--│ ★ Favorites                                                          │
+----│ -------------------------------------------------------------------- │
+----│ ★ C:\projects\jcd                                                    │
+    │ 🕒 Recent                                                            │
+    │ -------------------------------------------------------------------- │
+    │ ★ C:\projects\jcd                                                    │
+    │   C:\users\jaime\documents\projects\doccompose\backend               │
+    │   D:\temp                                                            │
+    │   C:\repos\client-x                                                  │
+    │ 🔥 Frequent                                                          │
+    │ -------------------------------------------------------------------- │
+    │   D:\temp                                                            │
+    │ ★ C:\projects\jcd                                                    │
+    │   C:\repos\client-x                                                  │
+    │   C:\users\jaime\documents\projects\doccompose\backend               │
+    │ [↑↓]=Move [Enter]=Go [F]=Favorite [Esc]=Close                        │
+    ╰──────────────────────────────────────────────────────────────────────╯
+
+
+[↑↓]=Move [Enter]=Open [Bksp]=Up [F3]=Search [F4]=Quick [F1]=Help [ESC]=Quit

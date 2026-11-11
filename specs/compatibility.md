@@ -1,8 +1,8 @@
 # JCD — Legacy Compatibility
 
 - **Status:** Draft
-- **Version:** 1.1.1
-- **Last updated:** 2026-11-10
+- **Version:** 1.2.0
+- **Last updated:** 2026-11-11
 
 This document maps the PowerBASIC legacy application (`legacy-app/`) to the Go
 port and records every deliberate behavioural difference.
@@ -80,6 +80,13 @@ click-to-select), and an optional JSON configuration file. The legacy app had
 none of these. Mouse support is off by default so the terminal's native text
 selection keeps working.
 
+### 3.8 Quick Access
+The port adds a Quick Access popup (F4) that tracks directories the user
+selects and groups them into Favorites, Recent, and Frequent sections. The
+legacy app had no equivalent. The history is persisted in its own
+`tracked.json` file, and long paths are middle-truncated at segment boundaries
+so the most distinguishing parts stay visible.
+
 ## 4. Parity checklist
 
 - [x] Six sort modes, directories first
@@ -96,6 +103,7 @@ selection keeps working.
 - [x] PowerShell wrapper end-to-end
 - [x] Scrollable help screen (F1 or `?`)
 - [x] Drive-selection screen (Backspace at a drive root)
+- [x] Quick Access popup with tracked directories (F4)
 - [x] Full key set including help and drives
 - [x] Attribute mapping parity tests (Win32 bits and real files)
 - [x] Edge-case path tests (spaces, Unicode, shell metacharacters, `*` on POSIX)

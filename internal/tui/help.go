@@ -20,6 +20,7 @@ Commands:
   F1 or ?                   Toggle this help
   F2                        Cycle the sort mode
   F3                        Start a search (or start typing)
+  F4                        Open Quick Access
 
 Search:
   Matching ignores case and accents and matches anywhere in the name.
@@ -28,6 +29,15 @@ Search:
     Tab         Next match (wraps)
     Shift+Tab   Previous match
     Esc         Cancel the search
+
+Quick Access (F4):
+  Shows the directories you visited, grouped into Favorites, Recent,
+  and Frequent sections. Long paths keep their beginning and end;
+  removed middle folders are shown as "...".
+    Up / Down   Move the selection
+    Enter       Jump to the directory and quit (the shell enters it)
+    F           Toggle the selected entry's favorite status
+    Esc         Close the popup without navigating
 
 Sort modes (F2):
   Name / Date / Size, ascending and descending. Directories always

@@ -18,6 +18,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.help.SetHeight(m.helpViewportHeight())
 		}
 		m.ensureVisible()
+		if m.state == StateQuickAccess {
+			m.ensureQuickVisible()
+		}
 		return m, nil
 
 	case tea.KeyPressMsg:
@@ -28,6 +31,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.updateHelp(msg)
 		case StateDriveSelect:
 			return m.updateDriveSelect(msg)
+		case StateQuickAccess:
+			return m.updateQuickAccess(msg)
 		default:
 			return m.updateBrowsing(msg)
 		}
@@ -125,6 +130,8 @@ func (m Model) updateBrowsing(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 		m.cycleSort()
 	case "f3":
 		m.startSearch()
+	case "f4":
+		m.openQuickAccess()
 	default:
 		// Typing a visible, printable character starts a search seeded with it.
 		if seed := searchSeed(msg); seed != "" {

@@ -1,5 +1,5 @@
 ╭──────────────────────────────────────────────────────────────────────────────╮
-│ JCD Help — 1.1.1                                                             │
+│ JCD Help — 1.2.0                                                             │
 │ by Jaime de los Hoyos M.                                                     │
 │                                                                              │
 │ Commands:                                                                    │
@@ -12,6 +12,7 @@
 │   F1 or ?                   Toggle this help                                 │
 │   F2                        Cycle the sort mode                              │
 │   F3                        Start a search (or start typing)                 │
+│   F4                        Open Quick Access                                │
 │                                                                              │
 │ Search:                                                                      │
 │   Matching ignores case and accents and matches anywhere in the name.        │
@@ -19,6 +20,5 @@
 │     Enter       Open the selected entry and leave search                     │
 │     Tab         Next match (wraps)                                           │
 │     Shift+Tab   Previous match                                               │
-│     Esc         Cancel the search                                            │
 │ [Up/Down/PgUp/PgDn]=Scroll  [F1]/[Esc]=Close                                 │
 ╰──────────────────────────────────────────────────────────────────────────────╯

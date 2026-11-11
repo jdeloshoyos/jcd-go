@@ -106,7 +106,8 @@ Usage:
 
 Navigate with the arrow keys, Home/End, and PgUp/PgDn. Press Enter to open a
 directory or file, Backspace to go up (the drive list at a drive root), F2 to
-cycle sort modes, F3 to search (or just start typing), and F1 (or ?) for help.
+cycle sort modes, F3 to search (or just start typing), F4 for Quick Access,
+and F1 (or ?) for help.
 
 Esc quits and prints the final directory to stdout so a shell wrapper (for
 example scripts/jcd.ps1) can change into it.

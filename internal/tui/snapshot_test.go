@@ -12,6 +12,7 @@ import (
 	"github.com/charmbracelet/x/ansi"
 
 	"jcd-go/internal/fsentry"
+	"jcd-go/internal/history"
 )
 
 var snapshotTime = time.Date(2021, time.January, 2, 15, 4, 5, 0, time.UTC)
@@ -34,16 +35,18 @@ func snapshotModel() Model {
 		TotalBytes: 2560,
 	}
 	return Model{
-		dir:      "/demo/project",
-		listing:  listing,
-		sortMode: fsentry.SortNameAsc,
-		state:    StateBrowsing,
-		width:    80,
-		height:   24,
-		search:   newSearchInput(),
-		help:     viewport.New(),
-		theme:    DefaultTheme(),
-		openFile: func(string) error { return nil },
+		dir:       "/demo/project",
+		listing:   listing,
+		sortMode:  fsentry.SortNameAsc,
+		state:     StateBrowsing,
+		width:     80,
+		height:    24,
+		search:    newSearchInput(),
+		help:      viewport.New(),
+		history:   history.New(""),
+		theme:     DefaultTheme(),
+		dirExists: func(string) bool { return true },
+		openFile:  func(string) error { return nil },
 	}
 }
 
@@ -75,6 +78,16 @@ func TestSnapshots(t *testing.T) {
 		{"too_small", func(m *Model) {
 			m.width = 40
 			m.height = 10
+		}},
+		{"quick_access", func(m *Model) {
+			base := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
+			m.history.Replace([]history.TrackedDirectory{
+				{Path: `C:\projects\jcd`, VisitCount: 4, LastVisitedUtc: base.Add(4 * time.Hour), Favorite: true},
+				{Path: `C:\users\jaime\documents\projects\doccompose\backend`, VisitCount: 1, LastVisitedUtc: base.Add(3 * time.Hour)},
+				{Path: `D:\temp`, VisitCount: 7, LastVisitedUtc: base.Add(2 * time.Hour)},
+				{Path: `C:\repos\client-x`, VisitCount: 2, LastVisitedUtc: base.Add(1 * time.Hour)},
+			})
+			m.openQuickAccess()
 		}},
 	}
 

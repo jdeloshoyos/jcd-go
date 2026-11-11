@@ -1,8 +1,8 @@
 # JCD — Requirements
 
 - **Status:** Draft
-- **Version:** 1.1.1
-- **Last updated:** 2026-11-10
+- **Version:** 1.2.0
+- **Last updated:** 2026-11-11
 
 Requirement IDs are stable references used by the test suite and by
 [`compatibility.md`](compatibility.md).
@@ -114,6 +114,21 @@ Requirement IDs are stable references used by the test suite and by
 | `FR-CONF-5`   | An invalid configuration file, theme, or sort value is a usage error. |
 | `FR-MOUSE-1`  | With mouse enabled, the wheel moves the selection and scrolls the help screen. |
 | `FR-MOUSE-2`  | With mouse enabled, left-clicking an entry selects it. |
+
+### 1.11 Quick Access
+
+| ID         | Requirement |
+| ---------- | ----------- |
+| `FR-QA-1`  | F4 opens a single scrollable Quick Access popup from browsing, grouped into Favorites, Recent, and Frequent sections. |
+| `FR-QA-2`  | Every normal exit that reports a directory records a visit: existing entries increment their visit count and timestamp; new entries start at `1`. |
+| `FR-QA-3`  | The tracked collection is capped at 100 directories, evicting the lowest-ranked entries and favoring favorites, then frequent, then recent entries. |
+| `FR-QA-4`  | Favorites shows all favorites; Recent shows the 10 most recently visited; Frequent shows the 10 most visited. A directory may appear in several sections but not twice in one. |
+| `FR-QA-5`  | Up/Down move between directory entries, skipping section headers; PgUp/PgDn and Home/End also move the selection. |
+| `FR-QA-6`  | Enter jumps to the selected directory and quits, so the wrapper changes the shell directory. |
+| `FR-QA-7`  | Esc closes the popup without navigating; F toggles the selected entry's favorite status and refreshes the list immediately. |
+| `FR-QA-8`  | Favorite entries show a `★` indicator; non-favorites do not. |
+| `FR-QA-9`  | Long paths are middle-truncated at segment boundaries, preserving the beginning and end and replacing removed middle segments with `...`. |
+| `FR-QA-10` | The tracked history is persisted separately from the configuration in `<UserConfigDir>/jcd/tracked.json`. |
 
 ## 2. Non-functional requirements
 

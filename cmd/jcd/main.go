@@ -9,6 +9,7 @@ import (
 
 	"jcd-go/internal/cli"
 	"jcd-go/internal/config"
+	"jcd-go/internal/history"
 	"jcd-go/internal/tui"
 	"jcd-go/internal/version"
 )
@@ -75,10 +76,18 @@ func run(args []string) int {
 		return cli.ExitTooSmall
 	}
 
+	historyPath := config.HistoryPath()
+	store := history.New(historyPath)
+	if err := store.Load(); err != nil {
+		// A corrupt or unreadable history must not prevent navigation.
+		store = history.New(historyPath)
+	}
+
 	model, err := tui.NewWithOptions(dir, tui.Options{
-		Theme: cfg.Theme,
-		Sort:  sortMode,
-		Mouse: cfg.Mouse,
+		Theme:   cfg.Theme,
+		Sort:    sortMode,
+		Mouse:   cfg.Mouse,
+		History: store,
 	})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "jcd: %v\n", err)
@@ -101,6 +110,16 @@ func run(args []string) int {
 	if !ok || m.ChosenDir() == "" {
 		return cli.ExitError
 	}
+
+	// Record the completed selection so Quick Access can offer it later, and
+	// drop entries whose directories no longer exist. History is best effort:
+	// a failure must not stop the shell from changing directory.
+	store.PruneMissing(func(path string) bool {
+		info, err := os.Stat(path)
+		return err == nil && info.IsDir()
+	})
+	store.Record(m.ChosenDir())
+	_ = store.Save()
 
 	// Print a banner and the target path. The shell wrapper turns these into a
 	// human-readable confirmation and applies the path with Set-Location.
