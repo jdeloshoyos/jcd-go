@@ -137,15 +137,16 @@ because that is not portable (or possible) for a child process.
 ## 8. Build and release
 
 - `go build ./...` and `go test ./...` must pass on all CI platforms.
-- Release builds use `-trimpath` and inject the version via `-ldflags`.
+- `build_prd.ps1` produces a smaller Windows binary (`jcd_bin.exe`) with
+  `-trimpath` and `-ldflags="-s -w"`, stripping DWARF symbols and debug info.
 - Semantic versioning; the current release is `1.1.0`.
 
 ## 9. Deliberate design decisions
 
 - **Hand-rolled listing** instead of `bubbles/list` for exact column control.
 - **Explicit search mode** instead of the legacy silent timed search.
-- **Clean stdout protocol** (single path line) instead of the `*`-delimited
-  format, which breaks on paths containing `*`.
+- **Clean stdout protocol** (a banner line plus the path line) instead of the
+  `*`-delimited format, which breaks on paths containing `*`.
 - **UI on stderr, result on stdout** so a capturing wrapper receives only the
-  path.
+  banner and path.
 - **Windows-first**; the platform layer keeps Unix support a small addition.

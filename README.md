@@ -25,6 +25,16 @@ go build -o jcd ./cmd/jcd
 
 On Windows this produces `jcd.exe`.
 
+For a smaller production build, run the PowerShell helper in the project root:
+
+```powershell
+.\build_prd.ps1
+```
+
+It builds `jcd_bin.exe` with `-trimpath` and `-ldflags="-s -w"`, which strips
+DWARF symbol tables and debug information. `jcd_bin` is the executable name the
+PowerShell wrapper looks for by default.
+
 ## Use
 
 A child process cannot change its parent shell's working directory, so a thin
