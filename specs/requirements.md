@@ -1,7 +1,7 @@
 # JCD — Requirements
 
 - **Status:** Draft
-- **Version:** 1.2.0
+- **Version:** 1.3.0
 - **Last updated:** 2026-11-11
 
 Requirement IDs are stable references used by the test suite and by
@@ -122,7 +122,7 @@ Requirement IDs are stable references used by the test suite and by
 | `FR-QA-1`  | F4 opens a single scrollable Quick Access popup from browsing, grouped into Favorites, Recent, and Frequent sections. |
 | `FR-QA-2`  | Every normal exit that reports a directory records a visit: existing entries increment their visit count and timestamp; new entries start at `1`. |
 | `FR-QA-3`  | The tracked collection is capped at 100 directories, evicting the lowest-ranked entries and favoring favorites, then frequent, then recent entries. |
-| `FR-QA-4`  | Favorites shows all favorites; Recent shows the 10 most recently visited; Frequent shows the 10 most visited. A directory may appear in several sections but not twice in one. |
+| `FR-QA-4`  | Favorites shows all favorites; Recent shows the 10 most recently visited non-favorites; Frequent shows the 10 most visited non-favorites. A directory appears in only one section. |
 | `FR-QA-5`  | Up/Down move between directory entries, skipping section headers; PgUp/PgDn and Home/End also move the selection. |
 | `FR-QA-6`  | Enter jumps to the selected directory and quits, so the wrapper changes the shell directory. |
 | `FR-QA-7`  | Esc closes the popup without navigating; F toggles the selected entry's favorite status and refreshes the list immediately. |

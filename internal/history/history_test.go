@@ -91,18 +91,54 @@ func TestSections(t *testing.T) {
 		t.Errorf("favorites order = %v, want most recent first", paths(favorites))
 	}
 
-	if len(recent) != 5 {
-		t.Fatalf("recent = %d, want 5", len(recent))
+	// Favorites are excluded from Recent and Frequent, leaving the three
+	// non-favorites.
+	if len(recent) != 3 {
+		t.Fatalf("recent = %d, want 3", len(recent))
 	}
 	if recent[0].Path != "/new" {
 		t.Errorf("recent[0] = %q, want /new", recent[0].Path)
 	}
 
-	if len(frequent) != 5 {
-		t.Fatalf("frequent = %d, want 5", len(frequent))
+	if len(frequent) != 3 {
+		t.Fatalf("frequent = %d, want 3", len(frequent))
 	}
 	if frequent[0].Path != "/frequent" {
 		t.Errorf("frequent[0] = %q, want /frequent", frequent[0].Path)
+	}
+
+	for _, d := range recent {
+		if d.Favorite {
+			t.Errorf("recent contains favorite %q", d.Path)
+		}
+	}
+	for _, d := range frequent {
+		if d.Favorite {
+			t.Errorf("frequent contains favorite %q", d.Path)
+		}
+	}
+}
+
+func TestSectionsExcludesFavoritesFromRecentAndFrequent(t *testing.T) {
+	s := New("")
+	base := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
+	// The favorite would top both Recent and Frequent if favorites were not
+	// excluded.
+	s.dirs = []TrackedDirectory{
+		{Path: "/fav", VisitCount: 100, LastVisitedUtc: base.Add(10 * time.Hour), Favorite: true},
+		{Path: "/plain", VisitCount: 1, LastVisitedUtc: base.Add(1 * time.Hour)},
+	}
+
+	favorites, recent, frequent := s.Sections()
+
+	if len(favorites) != 1 || favorites[0].Path != "/fav" {
+		t.Fatalf("favorites = %v, want [/fav]", paths(favorites))
+	}
+	if len(recent) != 1 || recent[0].Path != "/plain" {
+		t.Errorf("recent = %v, want [/plain]", paths(recent))
+	}
+	if len(frequent) != 1 || frequent[0].Path != "/plain" {
+		t.Errorf("frequent = %v, want [/plain]", paths(frequent))
 	}
 }
 

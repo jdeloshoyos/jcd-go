@@ -1,24 +1,24 @@
 /demo/project
 2 directories, 3 files; 2.5 KiB used.           [F2]=Toggle sort (Name Asc)  1/5
-d---╭──────────────────────────────────────────────────────────────────────╮
-d---│ Quick Access                                                         │
--l--│ ★ Favorites                                                          │
-----│ -------------------------------------------------------------------- │
-----│ ★ C:\projects\jcd                                                    │
-    │ 🕒 Recent                                                            │
-    │ -------------------------------------------------------------------- │
+d-------- 2021/01/02 15:04:05 docs
+d-------- 2021/01/02 15:04:05 src
+-l------- 2021/01/02 15:04:05 latest
+----╭──────────────────────────────────────────────────────────────────────╮
+----│ Quick Access                                                         │
+    │ - ★ Favorites ------------------------------------------------------ │
     │ ★ C:\projects\jcd                                                    │
+    │ - 🕒 Recent -------------------------------------------------------- │
     │   C:\users\jaime\documents\projects\doccompose\backend               │
     │   D:\temp                                                            │
     │   C:\repos\client-x                                                  │
-    │ 🔥 Frequent                                                          │
-    │ -------------------------------------------------------------------- │
+    │ - 🔥 Frequent ------------------------------------------------------ │
     │   D:\temp                                                            │
-    │ ★ C:\projects\jcd                                                    │
     │   C:\repos\client-x                                                  │
     │   C:\users\jaime\documents\projects\doccompose\backend               │
     │ [↑↓]=Move [Enter]=Go [F]=Favorite [Esc]=Close                        │
     ╰──────────────────────────────────────────────────────────────────────╯
+
+
 
 
 [↑↓]=Move [Enter]=Open [Bksp]=Up [F3]=Search [F4]=Quick [F1]=Help [ESC]=Quit

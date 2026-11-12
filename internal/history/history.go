@@ -160,22 +160,26 @@ func (s *Store) PruneMissing(exists func(string) bool) {
 }
 
 // Sections derives the three popup views from the single collection. Favorites
-// are ordered by recency, Recent holds the most recently visited entries, and
-// Frequent holds the most visited entries. A directory may appear in several
-// sections.
+// are ordered by recency. Recent and Frequent exclude favorites, so a directory
+// appears in Favorites or in those sections, but never in both: Recent holds the
+// most recently visited non-favorites and Frequent holds the most visited
+// non-favorites.
 func (s *Store) Sections() (favorites, recent, frequent []TrackedDirectory) {
+	nonFavorites := make([]TrackedDirectory, 0, len(s.dirs))
 	for _, d := range s.dirs {
 		if d.Favorite {
 			favorites = append(favorites, d)
+		} else {
+			nonFavorites = append(nonFavorites, d)
 		}
 	}
 	sortNewestFirst(favorites)
 
-	recent = append([]TrackedDirectory(nil), s.dirs...)
+	recent = append([]TrackedDirectory(nil), nonFavorites...)
 	sortNewestFirst(recent)
 	recent = limit(recent, RecentLimit)
 
-	frequent = append([]TrackedDirectory(nil), s.dirs...)
+	frequent = append([]TrackedDirectory(nil), nonFavorites...)
 	sort.SliceStable(frequent, func(i, j int) bool {
 		if frequent[i].VisitCount != frequent[j].VisitCount {
 			return frequent[i].VisitCount > frequent[j].VisitCount

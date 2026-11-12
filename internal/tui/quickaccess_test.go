@@ -112,17 +112,21 @@ func TestQuickAccessEscClosesWithoutQuitting(t *testing.T) {
 func TestQuickAccessToggleFavoriteRefreshesSections(t *testing.T) {
 	m, paths := newQuickModel(t)
 	m = press(t, m, key(tea.KeyF4))
-	m = press(t, m, key(tea.KeyDown)) // beta, most recent
+	m = press(t, m, key(tea.KeyDown)) // beta, most recent non-favorite
 
 	if got := m.quickRows[m.quickCursor].path; got != paths[1] {
 		t.Fatalf("selection = %q, want beta %q", got, paths[1])
 	}
 
-	// Favoriting adds it to the Favorites section and keeps the cursor on it.
+	// Favoriting adds it to the Favorites section, removes it from the other
+	// sections, and keeps the cursor on it.
 	m = press(t, m, runeKey('f'))
-	favorites, _, _ := m.history.Sections()
+	favorites, recent, frequent := m.history.Sections()
 	if !containsPath(favorites, paths[1]) {
 		t.Error("beta was not added to favorites")
+	}
+	if containsPath(recent, paths[1]) || containsPath(frequent, paths[1]) {
+		t.Error("beta still appears in recent/frequent after favoriting")
 	}
 	if got := m.quickRows[m.quickCursor].path; got != paths[1] {
 		t.Errorf("cursor moved to %q after favoriting", got)
@@ -131,11 +135,18 @@ func TestQuickAccessToggleFavoriteRefreshesSections(t *testing.T) {
 		t.Error("selected row is not marked as favorite")
 	}
 
-	// Un-favoriting removes it from the Favorites section.
+	// Un-favoriting removes it from Favorites and restores it to the other
+	// sections where it qualifies.
 	m = press(t, m, runeKey('f'))
-	favorites, _, _ = m.history.Sections()
+	favorites, recent, frequent = m.history.Sections()
 	if containsPath(favorites, paths[1]) {
 		t.Error("beta is still a favorite after toggling off")
+	}
+	if !containsPath(recent, paths[1]) || !containsPath(frequent, paths[1]) {
+		t.Error("beta did not return to recent and frequent after un-favoriting")
+	}
+	if got := m.quickRows[m.quickCursor].path; got != paths[1] {
+		t.Errorf("cursor moved to %q after un-favoriting", got)
 	}
 }
 
@@ -149,6 +160,25 @@ func TestQuickAccessRendersSections(t *testing.T) {
 	for _, want := range []string{"Quick Access", "Favorites", "Recent", "Frequent", "Enter"} {
 		if !strings.Contains(out, want) {
 			t.Errorf("render missing %q:\n%s", want, out)
+		}
+	}
+}
+
+func TestQuickAccessSectionHeaderFillsWidth(t *testing.T) {
+	m, _ := newQuickModel(t)
+
+	for _, title := range []string{"★ Favorites", "🕒 Recent", "🔥 Frequent"} {
+		line := m.renderQuickSection(title, 40)
+		if w := lipgloss.Width(line); w != 40 {
+			t.Errorf("%q section width = %d, want 40", title, w)
+		}
+		wantPrefix := "- " + title + " "
+		if plain := ansi.Strip(line); !strings.HasPrefix(plain, wantPrefix) {
+			t.Errorf("%q section = %q, want prefix %q", title, plain, wantPrefix)
+		}
+		// The leading dash uses the same dim style as the trailing rule.
+		if want := m.theme.Meta.Render("- "); !strings.HasPrefix(line, want) {
+			t.Errorf("%q leading dash is not dim-styled", title)
 		}
 	}
 }

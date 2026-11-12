@@ -10,11 +10,10 @@ import (
 	"jcd-go/internal/history"
 )
 
-// quickRow is one line in the Quick Access list. Section rows (titles and
-// rules) are never selectable.
+// quickRow is one line in the Quick Access list. Section rows (the combined
+// title-and-rule headers) are never selectable.
 type quickRow struct {
 	section  bool
-	rule     bool
 	title    string
 	path     string
 	favorite bool
@@ -62,10 +61,7 @@ func (m *Model) buildQuickRows() {
 		if len(visible) == 0 {
 			return
 		}
-		m.quickRows = append(m.quickRows,
-			quickRow{section: true, title: title},
-			quickRow{section: true, rule: true},
-		)
+		m.quickRows = append(m.quickRows, quickRow{section: true, title: title})
 		for _, d := range visible {
 			m.quickRows = append(m.quickRows, quickRow{path: d.Path, favorite: d.Favorite})
 		}
@@ -311,10 +307,7 @@ func (m Model) renderQuickAccess() string {
 
 func (m Model) renderQuickRow(row quickRow, selected bool, width int) string {
 	if row.section {
-		if row.rule {
-			return m.theme.Meta.Render(strings.Repeat("-", width))
-		}
-		return m.theme.Section.Render(padRight(truncate(row.title, width, "…"), width))
+		return m.renderQuickSection(row.title, width)
 	}
 
 	prefix := "  "
@@ -333,6 +326,30 @@ func (m Model) renderQuickRow(row quickRow, selected bool, width int) string {
 	}
 	line := m.theme.Favorite.Render(prefix) + m.theme.Dir.Render(path)
 	return padRight(line, width)
+}
+
+// renderQuickSection draws a section header as a single line: a dim "- " prefix,
+// a bright title, and a dim dashed rule that fills the remaining width.
+func (m Model) renderQuickSection(title string, width int) string {
+	const prefix = "- "
+	prefixWidth := lipgloss.Width(prefix)
+	labelWidth := prefixWidth + lipgloss.Width(title)
+
+	// Leave room for a separating space and at least one rule character; if the
+	// label is too wide for that, fall back to a plain padded label.
+	if labelWidth+2 > width {
+		avail := width - prefixWidth
+		if avail < 1 {
+			avail = 1
+		}
+		return m.theme.Meta.Render(prefix) +
+			m.theme.Section.Render(padRight(truncate(title, avail, "…"), avail))
+	}
+
+	fill := width - labelWidth - 1
+	return m.theme.Meta.Render(prefix) +
+		m.theme.Section.Render(title) +
+		m.theme.Meta.Render(" "+strings.Repeat("-", fill))
 }
 
 // overlayBlock returns a copy of base with block drawn over it, the block's

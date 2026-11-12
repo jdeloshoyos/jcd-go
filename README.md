@@ -7,7 +7,7 @@ filesystem with the keyboard, and — on exit — reports the final directory ba
 to a thin shell wrapper so the wrapper can change the shell's working
 directory.
 
-> **Status:** released (`1.2.0`). The interactive TUI is implemented:
+> **Status:** released (`1.3.0`). The interactive TUI is implemented:
 > browsing, navigation, sort cycling, search, file opening, a scrollable help
 > screen, drive selection, a Quick Access popup for tracked directories,
 > themes, optional mouse support, configuration, and the PowerShell `cd`
@@ -138,10 +138,11 @@ A missing config file is fine; an invalid one is a usage error. Sizes are shown
 in IEC units (`B`, `KiB`, `MiB`, `GiB`, …).
 
 JCD also records the directories you select so **Quick Access** (`F4`) can offer
-favorites, recent, and frequent paths. This history is stored separately in
-`%AppData%\jcd\tracked.json`, next to the config file, so the user-authored
-configuration is never rewritten. Up to 100 directories are kept, favoring
-favorites, then frequently used, then recently used entries.
+favorites, recent, and frequent paths. Favorites appear only in the Favorites
+section, while Recent and Frequent list the remaining directories. This history
+is stored separately in `%AppData%\jcd\tracked.json`, next to the config file,
+so the user-authored configuration is never rewritten. Up to 100 directories
+are kept, favoring favorites, then frequently used, then recently used entries.
 
 ## Keys
 
@@ -225,4 +226,4 @@ modified.
 ## Versioning
 
 The project follows [semantic versioning](https://semver.org/). The current
-version is `1.2.0`.
+version is `1.3.0`.

@@ -1,7 +1,7 @@
 # JCD — Architecture
 
 - **Status:** Draft
-- **Version:** 1.2.0
+- **Version:** 1.3.0
 - **Last updated:** 2026-11-11
 
 ## 1. Technology stack
@@ -121,9 +121,11 @@ because that is not portable (or possible) for a child process.
 `history.Store` owns a single in-memory collection and its JSON file. It
 exposes `Load`, `Save`, `Record`, `ToggleFavorite`, `PruneMissing`, and
 `Sections`; the TUI derives the Favorites/Recent/Frequent views from
-`Sections`. Recording deduplicates case-insensitively on Windows, updates the
-visit count and timestamp, and trims to the 100 best-ranked entries. The store
-is independent of the user-authored configuration file.
+`Sections`. `Sections` keeps favorites out of the Recent and Frequent views, so
+each directory appears in only one section. Recording deduplicates
+case-insensitively on Windows, updates the visit count and timestamp, and trims
+to the 100 best-ranked entries. The store is independent of the user-authored
+configuration file.
 
 ## 6. Platform abstraction (`internal/platform`)
 
@@ -174,7 +176,7 @@ is independent of the user-authored configuration file.
   release: it copies the files to `%LOCALAPPDATA%\Programs\JCD`, adds that
   directory to the User `PATH`, and appends a `jcd` function to `$PROFILE`.
   It is idempotent and never touches `%AppData%\jcd`.
-- Semantic versioning; the current release is `1.2.0`.
+- Semantic versioning; the current release is `1.3.0`.
 
 ## 9. Deliberate design decisions
 
@@ -187,5 +189,6 @@ is independent of the user-authored configuration file.
 - **Windows-first**; the platform layer keeps Unix support a small addition.
 - **Quick Access uses a single tracked collection** and derives Favorites,
   Recent, and Frequent views from it, avoiding separate "recent" and "frequent"
-  stores. The history lives in its own JSON file so user configuration is never
-  rewritten.
+  stores. Favorites are excluded from Recent and Frequent so each directory
+  appears in only one section. The history lives in its own JSON file so user
+  configuration is never rewritten.

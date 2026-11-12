@@ -1,7 +1,7 @@
 # JCD — Behaviour Specification
 
 - **Status:** Draft
-- **Version:** 1.2.0
+- **Version:** 1.3.0
 - **Last updated:** 2026-11-11
 
 This document defines exactly how the app behaves. It is the reference for the
@@ -167,14 +167,15 @@ write permission.
 The popup is a centered, bordered window overlaid on the directory listing, so
 the listing stays visible around it. It contains a single scrollable list
 grouped into sections, in this order: Favorites (`★ Favorites`), Recent
-(`🕒 Recent`), and Frequent (`🔥 Frequent`). A directory may appear in more than
-one section, but never twice within the same section. Empty sections are
+(`🕒 Recent`), and Frequent (`🔥 Frequent`). A directory appears in Favorites or
+in Recent/Frequent, but never in more than one of them. Empty sections are
 omitted.
 
 - Favorite entries are prefixed with `★ `; other entries are indented with two
   spaces so paths stay aligned.
-- Each section has a title row and a dashed rule beneath it; the cursor skips
-  both.
+- Each section header is a single line: `- ` followed by the section title and
+  a dashed rule that fills the remaining width (for example
+  `- ★ Favorites ------------------`); the cursor skips it.
 - The popup footer shows `[↑↓]=Move [Enter]=Go [F]=Favorite [Esc]=Close`.
 - When no tracked directory is available, the popup shows
   `No tracked directories yet.`
@@ -352,5 +353,6 @@ are derived from this one list.
   as `{"directories": [...]}`. Each entry records `path`, `visit_count`,
   `last_visited_utc`, and `favorite`.
 - The Favorites section lists every favorite, ordered by recency. Recent lists
-  the 10 most recently visited directories. Frequent lists the 10 most visited
-  directories, newest first on ties.
+  the 10 most recently visited non-favorites. Frequent lists the 10 most visited
+  non-favorites, newest first on ties. Favorites are excluded from Recent and
+  Frequent, so every directory appears in only one section.
