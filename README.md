@@ -26,15 +26,57 @@ go build -o jcd ./cmd/jcd
 
 On Windows this produces `jcd.exe`.
 
-For a smaller production build, run the PowerShell helper in the project root:
+For a smaller production binary, strip symbols and trim paths:
 
 ```powershell
-.\build_prd.ps1
+go build -ldflags="-s -w" -trimpath -o .\jcd_bin.exe .\cmd\jcd
 ```
 
-It builds `jcd_bin.exe` with `-trimpath` and `-ldflags="-s -w"`, which strips
-DWARF symbol tables and debug information. `jcd_bin` is the executable name the
-PowerShell wrapper looks for by default.
+`-ldflags="-s -w"` removes DWARF symbol tables and debug information, and
+`-trimpath` keeps source paths out of the binary. `jcd_bin` is the executable
+name the PowerShell wrapper looks for by default.
+
+## Installing from a Release
+
+Official builds are distributed as ZIP archives on
+[GitHub Releases](https://github.com/jdeloshoyos/jcd-go/releases). Each archive
+contains everything needed to install JCD for the current user.
+
+1. Download `jcd-<version>-windows-amd64.zip` from the latest release.
+2. Extract the ZIP.
+3. Open PowerShell in the extracted folder.
+4. Run the installer:
+
+   ```powershell
+   .\install.ps1
+   ```
+
+5. Restart PowerShell.
+6. Run `jcd`.
+
+The installer does not require administrator privileges and configures the
+following for the current user only:
+
+- **Installation directory** — copies `jcd_bin.exe` and `jcd.ps1` to
+  `%LOCALAPPDATA%\Programs\JCD`.
+- **User PATH** — adds that directory to your user `PATH` (never the system
+  `PATH`), skipping the change if it is already present.
+- **PowerShell profile** — adds a `jcd` function to `$PROFILE` that runs the
+  installed wrapper, skipping the change if it is already present.
+
+The installer is idempotent: run it again to upgrade. It replaces the installed
+binary and wrapper and never touches your configuration or history
+(`%AppData%\jcd\config.json`, `%AppData%\jcd\tracked.json`).
+
+If your execution policy blocks scripts, run:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\install.ps1
+```
+
+> The profile integration targets `$PROFILE` for the PowerShell host that runs
+> the installer, so installing from Windows PowerShell 5.1 and from PowerShell 7
+> configure different profiles.
 
 ## Use
 
@@ -44,8 +86,11 @@ applies the path with `Set-Location`. The interface itself renders to
 **stderr**. On exit the wrapper prints the product banner and a
 "Changing current directory to …" confirmation.
 
-Put the binary on `PATH` (or set `JCD_BIN` to its full path), then add one of
-these to your PowerShell profile:
+The easiest way to set up JCD is to
+[install it from a release](#installing-from-a-release). To configure it
+manually instead, put `jcd_bin.exe` on `PATH` (or set `JCD_BIN` to its full
+path), copy `jcd.ps1` somewhere permanent, and add one of these to your
+PowerShell profile:
 
 ```powershell
 # Option A: a function (recommended; passes arguments reliably)
@@ -67,7 +112,7 @@ jcd -- -dashdir          # a directory whose name begins with '-'
 
 The wrapper must run in your current PowerShell session (via the function or
 alias above), not in a separate process. `JCD_BIN` overrides the executable it
-invokes; it defaults to `jcd`.
+invokes; it defaults to `jcd_bin`.
 
 ## Configuration
 
@@ -139,10 +184,31 @@ internal/history/   tracked-directory store for Quick Access (favorites, recent,
 internal/platform/  OS-specific behaviour (attributes, drives, open-file)
 internal/tui/       Bubble Tea model, update, view, and styles
 internal/integration/ end-to-end wrapper tests
-scripts/            shell wrappers (PowerShell first)
+scripts/            shell wrappers, installer, and release tooling
 specs/              living product specifications
 legacy-app/         original PowerBASIC sources — reference only, never modified
 ```
+
+## Creating a Release Package
+
+Maintainers create the GitHub Release archive with:
+
+```powershell
+.\scripts\build_release.ps1
+```
+
+The script reads the version from `internal/version/version.go` (bump that
+constant before releasing), builds the stripped production binary, verifies the
+binary reports that version, and stages `install.ps1`, `jcd.ps1`, and
+`jcd_bin.exe`. It writes:
+
+```
+dist\jcd-<version>-windows-amd64.zip
+```
+
+Attach that ZIP to the GitHub Release. It contains everything a user needs to
+install JCD: extract it, run `.\install.ps1`, restart PowerShell, and run
+`jcd`.
 
 ## Specifications
 

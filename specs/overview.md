@@ -22,6 +22,8 @@ advantage of a cross-platform runtime and a modern TUI stack.
 - **Quick Access**: jump to frequently or recently used directories from
   anywhere in the filesystem with a single key (`F4`).
 - **Single static binary** for simple deployment.
+- **Simple Windows installation**: a self-contained ZIP release and a one-step,
+  per-user installer (`install.ps1`), distributed through GitHub Releases.
 - **Windows first**, with architecture that keeps Linux and macOS support
   cheap to add.
 - **Spec-driven and well tested**: behaviour is described in `specs/` and
@@ -33,6 +35,9 @@ advantage of a cross-platform runtime and a modern TUI stack.
 - File management operations (copy, move, delete, rename).
 - File content preview or editing.
 - A graphical configuration UI.
+- MSI, winget, or Scoop packaging.
+- Machine-wide or administrator installation.
+- Installing directly from a source checkout.
 
 ## 4. Target platforms
 

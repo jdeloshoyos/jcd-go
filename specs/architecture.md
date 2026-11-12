@@ -32,7 +32,7 @@ internal/tui/         Bubble Tea model, update, view, styles, help
 internal/platform/    the only package with build-tagged OS-specific code
 internal/version/     semantic version, single source of truth
 internal/integration/ end-to-end tests for the shell wrapper contract
-scripts/              shell wrappers (PowerShell first)
+scripts/              shell wrappers, installer, and release tooling
 specs/                living specifications
 testdata/             fixture trees for tests
 ```
@@ -162,8 +162,18 @@ is independent of the user-authored configuration file.
 ## 8. Build and release
 
 - `go build ./...` and `go test ./...` must pass on all CI platforms.
-- `build_prd.ps1` produces a smaller Windows binary (`jcd_bin.exe`) with
-  `-trimpath` and `-ldflags="-s -w"`, stripping DWARF symbols and debug info.
+- The production Windows binary (`jcd_bin.exe`) is built with `-trimpath` and
+  `-ldflags="-s -w"`, stripping DWARF symbols and debug info.
+- `scripts/build_release.ps1` reads the version from
+  `internal/version/version.go`, builds that binary, verifies the binary reports
+  the same version, stages `install.ps1`, `jcd.ps1`, and `jcd_bin.exe`, and
+  produces `dist\jcd-<version>-windows-amd64.zip` for a GitHub Release. The
+  build fails immediately if `go build` fails, and the archive contents match
+  the layout the installer expects.
+- `scripts/install.ps1` installs the current user's copy from an extracted
+  release: it copies the files to `%LOCALAPPDATA%\Programs\JCD`, adds that
+  directory to the User `PATH`, and appends a `jcd` function to `$PROFILE`.
+  It is idempotent and never touches `%AppData%\jcd`.
 - Semantic versioning; the current release is `1.2.0`.
 
 ## 9. Deliberate design decisions

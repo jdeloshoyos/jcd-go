@@ -130,6 +130,22 @@ Requirement IDs are stable references used by the test suite and by
 | `FR-QA-9`  | Long paths are middle-truncated at segment boundaries, preserving the beginning and end and replacing removed middle segments with `...`. |
 | `FR-QA-10` | The tracked history is persisted separately from the configuration in `<UserConfigDir>/jcd/tracked.json`. |
 
+### 1.12 Installation and distribution
+
+| ID            | Requirement |
+| ------------- | ----------- |
+| `FR-INST-1`   | Releases are distributed as a ZIP archive containing `install.ps1`, `jcd_bin.exe`, and `jcd.ps1` at the archive root. |
+| `FR-INST-2`   | `install.ps1` locates `jcd_bin.exe` and `jcd.ps1` next to itself via `$PSScriptRoot` and fails with a clear error if either is missing. |
+| `FR-INST-3`   | The installer installs for the current user only, into `%LOCALAPPDATA%\Programs\JCD`, creating the directory if needed; it never requires administrator privileges. |
+| `FR-INST-4`   | The installer copies `jcd_bin.exe` and `jcd.ps1` into the installation directory, replacing existing files on upgrade. |
+| `FR-INST-5`   | The installer adds the installation directory to the **User** `PATH` only, never the system `PATH`, without creating duplicates, and is safe to run repeatedly. |
+| `FR-INST-6`   | The installer adds the `jcd` integration function to the current user's `$PROFILE`, creating missing directories and files, preserving existing contents, avoiding duplicates, and is safe to run repeatedly. |
+| `FR-INST-7`   | The installer never removes user data; `%AppData%\jcd\config.json` and `%AppData%\jcd\tracked.json` are preserved across upgrades. |
+| `FR-INST-8`   | Already-configured conditions (existing installation directory, PATH entry, or profile block) are reported as informational, not as errors. |
+| `FR-REL-1`    | `build_release.ps1` builds the production binary, stages the distribution files, and produces `dist\jcd-<version>-windows-amd64.zip` whose contents match the layout required by the installer. |
+| `FR-REL-2`    | The release build fails immediately if the production build fails. |
+| `FR-REL-3`    | The release version is read from `internal/version/version.go`, so the archive name always matches the version the shipped binary reports. |
+
 ## 2. Non-functional requirements
 
 | ID            | Requirement |

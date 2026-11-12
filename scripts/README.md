@@ -3,6 +3,14 @@
 Thin shell integrations consume the path printed by the `jcd` executable and
 change the parent shell's working directory.
 
+This folder also contains the release installer and packaging tooling:
+
+- `install.ps1` — per-user installer shipped inside the release ZIP. See
+  [Installing from a Release](../README.md#installing-from-a-release).
+- `build_release.ps1` — maintainer script that builds and packages the release
+  ZIP. See
+  [Creating a Release Package](../README.md#creating-a-release-package).
+
 ## PowerShell — `jcd.ps1`
 
 The wrapper runs the navigator, captures the banner and final path from stdout,
@@ -32,7 +40,7 @@ jcd
 jcd C:\some\directory
 ```
 
-Set `JCD_BIN` to point at a specific executable (defaults to `jcd`). The
+Set `JCD_BIN` to point at a specific executable (defaults to `jcd_bin`). The
 integration tests use this override.
 
 ## Planned
