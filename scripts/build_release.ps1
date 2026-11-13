@@ -6,8 +6,8 @@
 .DESCRIPTION
     Builds the stripped production binary, stages the distribution files, and
     creates dist\jcd-<version>-windows-amd64.zip. The archive contains
-    install.ps1, jcd_bin.exe, and jcd.ps1 at its root, ready for users to
-    extract and run install.ps1.
+    install.ps1, jcd_bin.exe, jcd.ps1, readme.txt, and LICENSE at its root,
+    ready for users to extract and run install.ps1.
 
     The version is read from internal/version/version.go, which is the same
     constant the binary reports. That keeps the archive name and the shipped
@@ -74,8 +74,10 @@ New-Item -ItemType Directory -Path $distDir -Force | Out-Null
 
 $installer = Join-Path $PSScriptRoot 'install.ps1'
 $wrapper = Join-Path $PSScriptRoot 'jcd.ps1'
+$installReadme = Join-Path $PSScriptRoot 'install-readme.txt'
+$license = Join-Path $repoRoot 'LICENSE'
 
-foreach ($source in @($installer, $wrapper, $binaryPath)) {
+foreach ($source in @($installer, $wrapper, $installReadme, $license, $binaryPath)) {
     if (-not (Test-Path -LiteralPath $source -PathType Leaf)) {
         throw "Missing required file: $source"
     }
@@ -84,6 +86,8 @@ foreach ($source in @($installer, $wrapper, $binaryPath)) {
 Copy-Item -LiteralPath $installer -Destination (Join-Path $distDir 'install.ps1') -Force
 Copy-Item -LiteralPath $wrapper -Destination (Join-Path $distDir 'jcd.ps1') -Force
 Copy-Item -LiteralPath $binaryPath -Destination (Join-Path $distDir 'jcd_bin.exe') -Force
+Copy-Item -LiteralPath $installReadme -Destination (Join-Path $distDir 'readme.txt') -Force
+Copy-Item -LiteralPath $license -Destination (Join-Path $distDir 'LICENSE') -Force
 
 # --- Create the archive -------------------------------------------------------
 
@@ -93,6 +97,8 @@ $stagedFiles = @(
     (Join-Path $distDir 'install.ps1')
     (Join-Path $distDir 'jcd.ps1')
     (Join-Path $distDir 'jcd_bin.exe')
+    (Join-Path $distDir 'readme.txt')
+    (Join-Path $distDir 'LICENSE')
 )
 Compress-Archive -Path $stagedFiles -DestinationPath $zipPath -Force
 

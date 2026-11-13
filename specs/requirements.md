@@ -1,8 +1,8 @@
 # JCD — Requirements
 
 - **Status:** Draft
-- **Version:** 1.3.0
-- **Last updated:** 2026-11-11
+- **Version:** 1.3.1
+- **Last updated:** 2026-11-13
 
 Requirement IDs are stable references used by the test suite and by
 [`compatibility.md`](compatibility.md).
@@ -142,6 +142,7 @@ Requirement IDs are stable references used by the test suite and by
 | `FR-INST-6`   | The installer adds the `jcd` integration function to the current user's `$PROFILE`, creating missing directories and files, preserving existing contents, avoiding duplicates, and is safe to run repeatedly. |
 | `FR-INST-7`   | The installer never removes user data; `%AppData%\jcd\config.json` and `%AppData%\jcd\tracked.json` are preserved across upgrades. |
 | `FR-INST-8`   | Already-configured conditions (existing installation directory, PATH entry, or profile block) are reported as informational, not as errors. |
+| `FR-INST-9`   | The installer removes the "Mark of the Web" (`Zone.Identifier` alternate stream) from the installed `jcd.ps1` and `jcd_bin.exe`, so the wrapper runs under a normal execution policy without a per-invocation `-ExecutionPolicy Bypass`. |
 | `FR-REL-1`    | `build_release.ps1` builds the production binary, stages the distribution files, and produces `dist\jcd-<version>-windows-amd64.zip` whose contents match the layout required by the installer. |
 | `FR-REL-2`    | The release build fails immediately if the production build fails. |
 | `FR-REL-3`    | The release version is read from `internal/version/version.go`, so the archive name always matches the version the shipped binary reports. |

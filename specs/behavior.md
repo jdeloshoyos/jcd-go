@@ -1,7 +1,7 @@
 # JCD — Behaviour Specification
 
 - **Status:** Draft
-- **Version:** 1.3.0
+- **Version:** 1.3.1
 - **Last updated:** 2026-11-11
 
 This document defines exactly how the app behaves. It is the reference for the

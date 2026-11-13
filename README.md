@@ -7,7 +7,7 @@ filesystem with the keyboard, and — on exit — reports the final directory ba
 to a thin shell wrapper so the wrapper can change the shell's working
 directory.
 
-> **Status:** released (`1.3.0`). The interactive TUI is implemented:
+> **Status:** released (`1.3.1`). The interactive TUI is implemented:
 > browsing, navigation, sort cycling, search, file opening, a scrollable help
 > screen, drive selection, a Quick Access popup for tracked directories,
 > themes, optional mouse support, configuration, and the PowerShell `cd`
@@ -63,6 +63,9 @@ following for the current user only:
   `PATH`), skipping the change if it is already present.
 - **PowerShell profile** — adds a `jcd` function to `$PROFILE` that runs the
   installed wrapper, skipping the change if it is already present.
+- **Unblocked files** — removes the "Mark of the Web" from the installed
+  `jcd.ps1` and `jcd_bin.exe` so the wrapper runs without a per-invocation
+  `-ExecutionPolicy Bypass`.
 
 The installer is idempotent: run it again to upgrade. It replaces the installed
 binary and wrapper and never touches your configuration or history
@@ -73,6 +76,10 @@ If your execution policy blocks scripts, run:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\install.ps1
 ```
+
+The installer itself may need `-ExecutionPolicy Bypass` when the ZIP was
+downloaded. The files it installs are unblocked automatically, so the installed
+`jcd.ps1` wrapper runs under a normal execution policy such as `RemoteSigned`.
 
 > The profile integration targets `$PROFILE` for the PowerShell host that runs
 > the installer, so installing from Windows PowerShell 5.1 and from PowerShell 7
@@ -200,8 +207,8 @@ Maintainers create the GitHub Release archive with:
 
 The script reads the version from `internal/version/version.go` (bump that
 constant before releasing), builds the stripped production binary, verifies the
-binary reports that version, and stages `install.ps1`, `jcd.ps1`, and
-`jcd_bin.exe`. It writes:
+binary reports that version, and stages `install.ps1`, `jcd.ps1`, `jcd_bin.exe`,
+`readme.txt`, and `LICENSE`. It writes:
 
 ```
 dist\jcd-<version>-windows-amd64.zip
@@ -226,4 +233,4 @@ modified.
 ## Versioning
 
 The project follows [semantic versioning](https://semver.org/). The current
-version is `1.3.0`.
+version is `1.3.1`.

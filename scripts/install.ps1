@@ -10,7 +10,8 @@
     The installer:
       * copies jcd_bin.exe and jcd.ps1 to %LOCALAPPDATA%\Programs\JCD;
       * adds that directory to the current user's PATH (never the system PATH);
-      * adds a jcd function to the current user's PowerShell profile.
+      * adds a jcd function to the current user's PowerShell profile;
+      * unblocks the installed files (clears the "Mark of the Web").
 
     It is safe to run repeatedly. Running it again upgrades the installed files
     and never touches user configuration in %AppData%\jcd.
@@ -88,6 +89,17 @@ Write-Ok 'Installed jcd_bin.exe'
 
 Copy-Item -LiteralPath $sourceWrapper -Destination (Join-Path $installDir 'jcd.ps1') -Force
 Write-Ok 'Installed jcd.ps1'
+
+# --- Unblock files downloaded from the internet ------------------------------
+# A downloaded ZIP tags its files with a "Mark of the Web" (Zone.Identifier
+# alternate stream). PowerShell's execution policy (for example RemoteSigned)
+# blocks scripts carrying that mark, so clear it on the installed copies. This
+# also suppresses the "Windows protected your PC" prompt for jcd_bin.exe. It is
+# a no-op when the source was built locally and no mark is present.
+$installedWrapper = Join-Path $installDir 'jcd.ps1'
+$installedBinary = Join-Path $installDir 'jcd_bin.exe'
+Unblock-File -LiteralPath $installedWrapper, $installedBinary
+Write-Ok 'Unblocked installed files'
 
 # --- Add the installation directory to the User PATH -------------------------
 

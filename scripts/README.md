@@ -5,8 +5,12 @@ change the parent shell's working directory.
 
 This folder also contains the release installer and packaging tooling:
 
-- `install.ps1` — per-user installer shipped inside the release ZIP. See
+- `install.ps1` — per-user installer shipped inside the release ZIP. It also
+  unblocks the installed files (clears the "Mark of the Web") so the wrapper
+  runs without a per-invocation `-ExecutionPolicy Bypass`. See
   [Installing from a Release](../README.md#installing-from-a-release).
+- `install-readme.txt` — plain-text installation guide staged into the release
+  ZIP as `readme.txt`.
 - `build_release.ps1` — maintainer script that builds and packages the release
   ZIP. See
   [Creating a Release Package](../README.md#creating-a-release-package).

@@ -1,8 +1,8 @@
 # JCD — Architecture
 
 - **Status:** Draft
-- **Version:** 1.3.0
-- **Last updated:** 2026-11-11
+- **Version:** 1.3.1
+- **Last updated:** 2026-11-13
 
 ## 1. Technology stack
 
@@ -168,15 +168,16 @@ configuration file.
   `-ldflags="-s -w"`, stripping DWARF symbols and debug info.
 - `scripts/build_release.ps1` reads the version from
   `internal/version/version.go`, builds that binary, verifies the binary reports
-  the same version, stages `install.ps1`, `jcd.ps1`, and `jcd_bin.exe`, and
-  produces `dist\jcd-<version>-windows-amd64.zip` for a GitHub Release. The
-  build fails immediately if `go build` fails, and the archive contents match
-  the layout the installer expects.
+  the same version, stages `install.ps1`, `jcd.ps1`, `jcd_bin.exe`, `readme.txt`,
+  and `LICENSE`, and produces `dist\jcd-<version>-windows-amd64.zip` for a
+  GitHub Release. The build fails immediately if `go build` fails, and the
+  archive contents match the layout the installer expects.
 - `scripts/install.ps1` installs the current user's copy from an extracted
-  release: it copies the files to `%LOCALAPPDATA%\Programs\JCD`, adds that
-  directory to the User `PATH`, and appends a `jcd` function to `$PROFILE`.
-  It is idempotent and never touches `%AppData%\jcd`.
-- Semantic versioning; the current release is `1.3.0`.
+  release: it copies the files to `%LOCALAPPDATA%\Programs\JCD`, unblocks them
+  (clearing the "Mark of the Web" so the wrapper runs under a normal execution
+  policy), adds that directory to the User `PATH`, and appends a `jcd` function
+  to `$PROFILE`. It is idempotent and never touches `%AppData%\jcd`.
+- Semantic versioning; the current release is `1.3.1`.
 
 ## 9. Deliberate design decisions
 
