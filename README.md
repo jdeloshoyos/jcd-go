@@ -7,7 +7,7 @@ filesystem with the keyboard, and — on exit — reports the final directory ba
 to a thin shell wrapper so the wrapper can change the shell's working
 directory.
 
-> **Status:** released (`1.3.1`). The interactive TUI is implemented:
+> **Status:** released (`1.3.2`). The interactive TUI is implemented:
 > browsing, navigation, sort cycling, search, file opening, a scrollable help
 > screen, drive selection, a Quick Access popup for tracked directories,
 > themes, optional mouse support, configuration, and the PowerShell `cd`
@@ -93,6 +93,11 @@ applies the path with `Set-Location`. The interface itself renders to
 **stderr**. On exit the wrapper prints the product banner and a
 "Changing current directory to …" confirmation.
 
+For `--help` and `--version`, the executable prefixes its informational output
+with a marker line on stdout. The wrapper relays that text verbatim (it is not
+treated as a directory) and leaves the current location unchanged, so
+`jcd --help` and `jcd --version` behave like any other command-line tool.
+
 The easiest way to set up JCD is to
 [install it from a release](#installing-from-a-release). To configure it
 manually instead, put `jcd_bin.exe` on `PATH` (or set `JCD_BIN` to its full
@@ -116,6 +121,9 @@ jcd --help               # usage
 jcd --version            # version
 jcd -- -dashdir          # a directory whose name begins with '-'
 ```
+
+`jcd --help` and `jcd --version` print their output through the wrapper just as
+the executable would when run directly.
 
 The wrapper must run in your current PowerShell session (via the function or
 alias above), not in a separate process. `JCD_BIN` overrides the executable it
@@ -233,4 +241,4 @@ modified.
 ## Versioning
 
 The project follows [semantic versioning](https://semver.org/). The current
-version is `1.3.1`.
+version is `1.3.2`.

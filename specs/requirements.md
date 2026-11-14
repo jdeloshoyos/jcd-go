@@ -1,7 +1,7 @@
 # JCD — Requirements
 
 - **Status:** Draft
-- **Version:** 1.3.1
+- **Version:** 1.3.2
 - **Last updated:** 2026-11-13
 
 Requirement IDs are stable references used by the test suite and by
@@ -102,6 +102,7 @@ Requirement IDs are stable references used by the test suite and by
 | `FR-EXIT-3`  | On failure the app prints a diagnostic to stderr and exits non-zero. |
 | `FR-EXIT-4`  | The output contains no UI escape sequences or decorations. |
 | `FR-EXIT-5`  | A PowerShell wrapper prints the banner and a "Changing current directory to …" line, then applies the returned path with `Set-Location`. |
+| `FR-EXIT-6`  | `--help` and `--version` prefix their stdout with an `Information` mode-selector line; the wrapper relays the remaining text verbatim (preserving blank lines) and changes no directory. |
 
 ### 1.10 Configuration and mouse
 

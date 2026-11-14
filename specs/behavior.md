@@ -1,7 +1,7 @@
 # JCD — Behaviour Specification
 
 - **Status:** Draft
-- **Version:** 1.3.1
+- **Version:** 1.3.2
 - **Last updated:** 2026-11-11
 
 This document defines exactly how the app behaves. It is the reference for the
@@ -238,7 +238,7 @@ stdout carries only the banner and the path. The wrapper prints the banner and a
 confirmation line, then applies the path (the last line). For PowerShell:
 
 ```powershell
-$binary = if ($env:JCD_BIN) { $env:JCD_BIN } else { 'jcd' }
+$binary = if ($env:JCD_BIN) { $env:JCD_BIN } else { 'jcd_bin' }
 $global:LASTEXITCODE = 0
 
 # jcd writes UTF-8; force UTF-8 decoding for the native command and restore it.
@@ -252,7 +252,16 @@ try {
 
 if ($LASTEXITCODE -ne 0) { return }
 
-$lines = @($result) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+$raw = @($result)
+if ($raw.Count -eq 0) { return }
+
+# --help / --version are informational: relay the text after the marker.
+if ($raw[0] -eq 'Information') {
+    $raw | Select-Object -Skip 1
+    return
+}
+
+$lines = $raw | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
 if ($lines.Count -eq 0) { return }
 
 if ($lines.Count -ge 2) { Write-Host $lines[0] }   # banner
@@ -260,6 +269,8 @@ $target = $lines[-1]
 if (Test-Path -LiteralPath $target -PathType Container) {
     Write-Host "Changing current directory to $target"
     Set-Location -LiteralPath $target
+} else {
+    [Console]::Error.WriteLine("jcd: '$target' is not a valid directory")
 }
 ```
 
@@ -279,6 +290,23 @@ PowerShell profile), not in a separate process.
 
 The repository ships this wrapper as `scripts/jcd.ps1`. `JCD_BIN` overrides the
 executable it invokes, which also makes the wrapper easy to test.
+
+### 7.4 Informational output
+
+`--help` and `--version` are informational: they exit `0` but must not be
+mistaken for a directory-change result. To make the two success shapes
+distinguishable, the executable writes a **mode-selector line** first on stdout:
+
+| First stdout line | Meaning |
+| ----------------- | ------- |
+| `Information`     | The remaining stdout is informational text (`--help` / `--version`). The wrapper relays it verbatim, preserving blank lines, and changes no directory. |
+| *(anything else)* | Navigation result: a banner line followed by the target path, handled as in §7.3. |
+
+The marker string is defined once as `cli.ModeInfo` in the Go code and matched
+literally by the wrapper, so the two stay in sync. The wrapper consumes the
+marker line rather than relaying it, so `jcd --help` and `jcd --version` produce
+the same output as running the executable directly. Running the executable
+directly shows the marker, which keeps the protocol human-readable.
 
 ## 8. Path resolution at startup
 

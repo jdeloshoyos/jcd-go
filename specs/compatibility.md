@@ -1,7 +1,7 @@
 # JCD — Legacy Compatibility
 
 - **Status:** Draft
-- **Version:** 1.3.1
+- **Version:** 1.3.2
 - **Last updated:** 2026-11-11
 
 This document maps the PowerBASIC legacy application (`legacy-app/`) to the Go
@@ -46,11 +46,14 @@ comparing, so searching `ima` matches `imágenes`.
 
 ### 3.2 Output protocol
 Legacy: `1.2*OK*C:\some\dir`, parsed by splitting on `*`. A path containing `*`
-(valid on POSIX systems) would break parsing. The port prints exactly the
-resolved path on stdout and signals success with exit code `0`; errors go to
-stderr. The PowerShell wrapper applies the path with `-LiteralPath`, and the
-protocol is covered by tests for spaces, Unicode, and shell metacharacters
-(`&`, `(`, `)`, `'`, `;`, `,`, `=`), as well as `*` names on POSIX.
+(valid on POSIX systems) would break parsing. The port prints a banner line and
+the resolved path on stdout and signals success with exit code `0`; errors go to
+stderr. Informational output (`--help`, `--version`) is prefixed with an
+`Information` mode-selector line so the wrapper can relay it instead of treating
+its last line as a directory. The PowerShell wrapper applies the path with
+`-LiteralPath`, and the protocol is covered by tests for spaces, Unicode, and
+shell metacharacters (`&`, `(`, `)`, `'`, `;`, `,`, `=`), as well as `*` names
+on POSIX.
 
 ### 3.3 Listing rendering
 The legacy app painted directly into the console buffer with `locate`/`color`.

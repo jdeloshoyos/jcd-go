@@ -21,6 +21,12 @@ const (
 	ExitTooSmall = 3
 )
 
+// ModeInfo is the mode-selector line printed first on stdout for informational
+// output (--help, --version). The PowerShell wrapper detects it to tell
+// informational output apart from a directory-change result and relays the
+// rest verbatim. Keep it in sync with scripts/jcd.ps1.
+const ModeInfo = "Information"
+
 // Action selects what the command should do after parsing arguments.
 type Action int
 

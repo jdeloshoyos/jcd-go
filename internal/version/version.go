@@ -5,4 +5,4 @@ package version
 const Name = "JCD Terminal Directory Navigator"
 
 // Version is the semantic version.
-const Version = "1.3.1"
+const Version = "1.3.2"

@@ -9,6 +9,11 @@
 # Set-Location. The Go process cannot change its parent shell's directory
 # itself.
 #
+# --help and --version print an "Information" mode-selector line first, then
+# the text to show. The wrapper relays that text verbatim (blank lines
+# included) and changes nothing. Keep the marker in sync with
+# internal/cli.ModeInfo in the Go code.
+#
 # Set JCD_BIN to override the executable (useful for tests).
 
 $binary = if ($env:JCD_BIN) { $env:JCD_BIN } else { 'jcd_bin' }
@@ -36,7 +41,20 @@ if ($LASTEXITCODE -ne 0) {
     return
 }
 
-$lines = @($result) |
+$raw = @($result)
+if ($raw.Count -eq 0) {
+    return
+}
+
+# Informational output (--help, --version) is prefixed with a mode-selector
+# line. Relay the rest verbatim, preserving blank lines, and leave the
+# location alone.
+if ($raw[0] -eq 'Information') {
+    $raw | Select-Object -Skip 1
+    return
+}
+
+$lines = $raw |
     Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
 
 if ($lines.Count -eq 0) {

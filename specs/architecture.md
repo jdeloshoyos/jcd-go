@@ -1,7 +1,7 @@
 # JCD — Architecture
 
 - **Status:** Draft
-- **Version:** 1.3.1
+- **Version:** 1.3.2
 - **Last updated:** 2026-11-13
 
 ## 1. Technology stack
@@ -177,14 +177,17 @@ configuration file.
   (clearing the "Mark of the Web" so the wrapper runs under a normal execution
   policy), adds that directory to the User `PATH`, and appends a `jcd` function
   to `$PROFILE`. It is idempotent and never touches `%AppData%\jcd`.
-- Semantic versioning; the current release is `1.3.1`.
+- Semantic versioning; the current release is `1.3.2`.
 
 ## 9. Deliberate design decisions
 
 - **Hand-rolled listing** instead of `bubbles/list` for exact column control.
 - **Explicit search mode** instead of the legacy silent timed search.
-- **Clean stdout protocol** (a banner line plus the path line) instead of the
-  `*`-delimited format, which breaks on paths containing `*`.
+- **Clean stdout protocol** (a banner line plus the path line for navigation; an
+  `Information` mode-selector line followed by text for `--help` / `--version`)
+  instead of the `*`-delimited format, which breaks on paths containing `*`. The
+  marker lets the wrapper relay informational output instead of interpreting its
+  last line as a directory.
 - **UI on stderr, result on stdout** so a capturing wrapper receives only the
   banner and path.
 - **Windows-first**; the platform layer keeps Unix support a small addition.

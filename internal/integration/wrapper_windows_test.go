@@ -198,6 +198,93 @@ func TestPowerShellWrapperHandlesSpecialPaths(t *testing.T) {
 	}
 }
 
+// runWrapperInfo runs the wrapper with the given argument in a fresh
+// PowerShell session, sets $loc to the final location and $out to the captured
+// wrapper output, then evaluates check. It returns the combined session output.
+func runWrapperInfo(t *testing.T, shell, wrapper, mock, start, arg, check string) string {
+	t.Helper()
+
+	script := fmt.Sprintf(`& {
+    if ($env:JCD_START) { Set-Location -LiteralPath $env:JCD_START }
+    $out = @(& $env:JCD_WRAPPER $env:JCD_ARG)
+    $loc = (Get-Location).Path
+    %s
+}`, check)
+
+	cmd := exec.Command(shell, "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-Command", script)
+	cmd.Env = append(os.Environ(),
+		"JCD_BIN="+mock,
+		"JCD_WRAPPER="+wrapper,
+		"JCD_START="+start,
+		"JCD_ARG="+arg,
+	)
+
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("powershell: %v\n%s", err, out)
+	}
+	return string(out)
+}
+
+// TestPowerShellWrapperRelaysVersion proves that an informational --version
+// result is relayed verbatim and never treated as a directory to change into.
+func TestPowerShellWrapperRelaysVersion(t *testing.T) {
+	shell := findPowerShell(t)
+	wrapper := wrapperPath(t)
+
+	dir := t.TempDir()
+	start := filepath.Join(dir, "start")
+	if err := os.Mkdir(start, 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	mock := writeMock(t, dir, "Write-Output 'Information'\nWrite-Output 'jcd 9.9.9'\n")
+
+	check := `
+    if (($loc -eq $env:JCD_START) -and ($out.Count -eq 1) -and ($out[0] -eq 'jcd 9.9.9')) {
+        'INFO-OK'
+    } else {
+        'INFO-BAD'; "loc=$loc"; "count=$($out.Count)"; "out=$($out -join '|')"
+    }`
+
+	out := runWrapperInfo(t, shell, wrapper, mock, start, "--version", check)
+	if !strings.Contains(out, "INFO-OK") {
+		t.Fatalf("wrapper did not relay --version; output:\n%s", out)
+	}
+}
+
+// TestPowerShellWrapperRelaysHelp proves that help output is relayed verbatim,
+// including its blank lines, and that the wrapper does not change directory.
+func TestPowerShellWrapperRelaysHelp(t *testing.T) {
+	shell := findPowerShell(t)
+	wrapper := wrapperPath(t)
+
+	dir := t.TempDir()
+	start := filepath.Join(dir, "start")
+	if err := os.Mkdir(start, 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	mock := writeMock(t, dir, "Write-Output 'Information'\n"+
+		"Write-Output 'jcd 9.9.9 - terminal directory navigator'\n"+
+		"Write-Output ''\n"+
+		"Write-Output 'Usage:'\n"+
+		"Write-Output '  jcd [directory]'\n")
+
+	check := `
+    $keep = ($out.Count -eq 4) -and ($out[1] -eq '') -and ($out[3] -eq '  jcd [directory]')
+    if (($loc -eq $env:JCD_START) -and $keep) {
+        'INFO-OK'
+    } else {
+        'INFO-BAD'; "loc=$loc"; "count=$($out.Count)"; "out=$($out -join '|')"
+    }`
+
+	out := runWrapperInfo(t, shell, wrapper, mock, start, "--help", check)
+	if !strings.Contains(out, "INFO-OK") {
+		t.Fatalf("wrapper did not relay --help verbatim; output:\n%s", out)
+	}
+}
+
 // TestPowerShellWrapperDecodesUTF8Path reproduces the mojibake bug: a native
 // jcd writes UTF-8, but Windows PowerShell 5.1 decodes native stdout with the
 // OEM code page, turning "Imágenes" into "Im├ígenes". The wrapper must force

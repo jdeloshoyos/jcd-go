@@ -17,6 +17,9 @@ func TestRunVersion(t *testing.T) {
 	if code != cli.ExitOK {
 		t.Errorf("exit code = %d, want %d", code, cli.ExitOK)
 	}
+	if !strings.HasPrefix(stdout, cli.ModeInfo+"\n") {
+		t.Errorf("stdout = %q, want it to start with the %q marker", stdout, cli.ModeInfo)
+	}
 	if !strings.Contains(stdout, version.Version) {
 		t.Errorf("stdout = %q, want the version", stdout)
 	}
@@ -27,6 +30,9 @@ func TestRunHelp(t *testing.T) {
 
 	if code != cli.ExitOK {
 		t.Errorf("exit code = %d, want %d", code, cli.ExitOK)
+	}
+	if !strings.HasPrefix(stdout, cli.ModeInfo+"\n") {
+		t.Errorf("stdout = %q, want it to start with the %q marker", stdout, cli.ModeInfo)
 	}
 	if !strings.Contains(stdout, "Usage:") {
 		t.Errorf("stdout = %q, want usage text", stdout)

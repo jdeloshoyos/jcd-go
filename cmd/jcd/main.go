@@ -28,9 +28,11 @@ func run(args []string) int {
 
 	switch opts.Action {
 	case cli.ActionVersion:
+		fmt.Println(cli.ModeInfo)
 		fmt.Printf("jcd %s\n", version.Version)
 		return cli.ExitOK
 	case cli.ActionHelp:
+		fmt.Println(cli.ModeInfo)
 		cli.Usage(os.Stdout, version.Version)
 		return cli.ExitOK
 	}
